@@ -1,1 +1,6 @@
-fastapi\nuvicorn\ngoogle-genai\npython-dotenv\npython-multipart\nrequests
+fastapi
+uvicorn
+google-genai
+python-dotenv
+python-multipart
+requests

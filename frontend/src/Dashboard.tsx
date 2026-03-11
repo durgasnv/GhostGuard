@@ -1,6 +1,7 @@
-import { useState, type ChangeEvent } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from './auth'
+import { aggregateEmlText, aggregateHeaderGroups, demoCandidates, type MessageHeader } from './scan'
 import './landing.css'
 
 interface ServiceInfo {
@@ -8,35 +9,114 @@ interface ServiceInfo {
     domain: string
     lastSeen: string
     accountType: string
+    messageCount: number
     status: 'Active' | 'Dormant' | 'Ghost'
     breached: boolean
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
+
 function Dashboard() {
     const navigate = useNavigate()
-    const { signOut, user } = useAuth()
+    const { accessToken, openAuthModal, signOut, user } = useAuth()
     const [services, setServices] = useState<ServiceInfo[]>([])
     const [loading, setLoading] = useState(false)
     const [draft, setDraft] = useState<string | null>(null)
     const [showDraft, setShowDraft] = useState(false)
+    const [requesterEmail, setRequesterEmail] = useState('')
+    const [notice, setNotice] = useState<string | null>(null)
+
+    useEffect(() => {
+        setRequesterEmail(user?.email ?? '')
+    }, [user?.email])
+
+    const analyzeCandidates = async (domains: ReturnType<typeof demoCandidates>) => {
+        const response = await fetch(`${API_BASE_URL}/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domains }),
+        })
+
+        if (!response.ok) {
+            throw new Error('Unable to analyze sanitized domains.')
+        }
+
+        const data = await response.json()
+        setServices(data)
+        setNotice(`Mapped ${data.length} service domains without sending raw inbox content to the backend.`)
+    }
 
     const scanInbox = async () => {
+        if (!accessToken) {
+            openAuthModal('Connect Gmail before scanning. GhostGuard only requests sender metadata during this session.')
+            return
+        }
+
         setLoading(true)
+        setNotice(null)
         try {
-            const response = await fetch('http://localhost:8080/analyze', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ headers: ['From: support@netflix.com', 'From: info@dropbox.com'] }),
+            const listResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=30&includeSpamTrash=false', {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
             })
-            const data = await response.json()
-            setServices(data)
+
+            if (!listResponse.ok) {
+                throw new Error('Unable to load Gmail message list.')
+            }
+
+            const listData = await listResponse.json() as { messages?: Array<{ id: string }> }
+            const messages = listData.messages ?? []
+
+            if (!messages.length) {
+                setServices([])
+                setNotice('No recent Gmail messages were available to scan.')
+                return
+            }
+
+            const headerGroups = await Promise.all(messages.map(async (message) => {
+                const metadataResponse = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${message.id}?format=metadata&metadataHeaders=From&metadataHeaders=Date`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                })
+
+                if (!metadataResponse.ok) {
+                    throw new Error('Unable to read Gmail metadata for one or more messages.')
+                }
+
+                const metadata = await metadataResponse.json() as {
+                    payload?: { headers?: MessageHeader[] }
+                }
+
+                return metadata.payload?.headers ?? []
+            }))
+
+            const candidates = aggregateHeaderGroups(headerGroups)
+
+            if (!candidates.length) {
+                setServices([])
+                setNotice('The scan completed, but no external service domains were detected from sender metadata.')
+                return
+            }
+
+            await analyzeCandidates(candidates)
         } catch (error) {
             console.error('Scan failed:', error)
-            setServices([
-                { service: 'Netflix', domain: 'netflix.com', lastSeen: '2024-03-01', accountType: 'Subscription', status: 'Active', breached: false },
-                { service: 'Dropbox', domain: 'dropbox.com', lastSeen: '2022-01-15', accountType: 'Cloud Storage', status: 'Ghost', breached: true },
-                { service: 'LinkedIn', domain: 'linkedin.com', lastSeen: '2023-05-10', accountType: 'Professional', status: 'Dormant', breached: true },
-            ])
+            setNotice('Gmail scan failed. Use the sample mode or upload a `.eml` file while the integration is being tested.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const loadDemoScan = async () => {
+        setLoading(true)
+        setNotice(null)
+        try {
+            await analyzeCandidates(demoCandidates())
+        } catch (error) {
+            console.error('Demo scan failed:', error)
+            setNotice('Sample scan failed because the backend analysis endpoint is unavailable.')
         } finally {
             setLoading(false)
         }
@@ -44,17 +124,17 @@ function Dashboard() {
 
     const generateDraft = async (service: string) => {
         try {
-            const response = await fetch('http://localhost:8080/generate-deletion-draft', {
+            const response = await fetch(`${API_BASE_URL}/generate-deletion-draft`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ service_name: service, user_email: user?.email ?? 'user@example.com' }),
+                body: JSON.stringify({ service_name: service, requester_email: requesterEmail || undefined }),
             })
             const data = await response.json()
             setDraft(data.draft)
             setShowDraft(true)
         } catch (error) {
             console.error('Draft failed:', error)
-            setDraft(`To: privacy@${service.toLowerCase()}.com\nSubject: GDPR Data Deletion Request\n\nPlease delete my account and all associated personal data.\n\nRegards,\n${user?.name ?? 'GhostGuard User'}`)
+            setDraft(`To: privacy@${service.toLowerCase()}.com\nSubject: Data Deletion Request\n\nPlease delete my account and associated personal data and confirm when the request is complete.\n\nAccount email: ${requesterEmail || '[Your Email]'}\n\nRegards,\n[Your Name]`)
             setShowDraft(true)
         }
     }
@@ -64,20 +144,21 @@ function Dashboard() {
         if (!file) return
 
         setLoading(true)
+        setNotice(null)
         try {
             const text = await file.text()
-            const headers = text.split('\n\n')[0].split('\n')
+            const candidates = aggregateEmlText(text)
 
-            const response = await fetch('http://localhost:8080/analyze', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ headers }),
-            })
-            const data = await response.json()
-            setServices(data)
+            if (!candidates.length) {
+                setServices([])
+                setNotice('No external domains could be extracted from that `.eml` header block.')
+                return
+            }
+
+            await analyzeCandidates(candidates)
         } catch (error) {
             console.error('File processing failed:', error)
-            alert('Failed to process .eml file')
+            setNotice('Failed to process that `.eml` file.')
         } finally {
             setLoading(false)
         }
@@ -101,7 +182,7 @@ function Dashboard() {
                     GG
                 </div>
                 <div className="dashboard-user utility-text">
-                    Signed in as {user?.email}
+                    {user?.email ? `Connected Gmail: ${user.email}` : 'Session-only Gmail access'}
                 </div>
                 <div className="nav-right nav-text">
                     <button className="nav-link-btn" onClick={() => navigate('/')}>Landing</button>
@@ -125,17 +206,31 @@ function Dashboard() {
                     </div>
                     <div className="dashboard-hero-copy">
                         <p className="intro-p">
-                            Review exposed services, launch inbox scans, and generate deletion requests from the same monochrome command surface used by the landing page.
+                            Review sanitized service domains, run Gmail metadata scans, and generate draft deletion requests without storing mailbox data.
                         </p>
+                        <p className="utility-text">GhostGuard reads `From` and `Date` headers in the browser, strips them down to domains, and sends only those summaries to the backend.</p>
                         <div className="dashboard-actions">
                             <label className="pill-btn pill-btn-outline dashboard-upload">
                                 Upload .eml
                                 <input type="file" className="hidden-input" accept=".eml" onChange={handleFileUpload} />
                             </label>
                             <button onClick={scanInbox} disabled={loading} className="pill-btn">
-                                {loading ? 'Scanning...' : 'Demo Scan'}
+                                {loading ? 'Scanning...' : 'Scan Gmail'}
+                            </button>
+                            <button onClick={loadDemoScan} disabled={loading} className="pill-btn pill-btn-outline">
+                                Load Sample
                             </button>
                         </div>
+                        <label className="dashboard-field">
+                            <span className="label">Requester Email for Drafts</span>
+                            <input
+                                className="dashboard-input"
+                                type="email"
+                                value={requesterEmail}
+                                onChange={(event) => setRequesterEmail(event.target.value)}
+                                placeholder="Optional address to include in deletion drafts"
+                            />
+                        </label>
                     </div>
                 </section>
 
@@ -154,10 +249,16 @@ function Dashboard() {
                     </div>
                 </section>
 
+                {notice && (
+                    <section className="dashboard-notice utility-text">
+                        {notice}
+                    </section>
+                )}
+
                 <section className="dashboard-panel">
                     <div className="dashboard-panel-header">
                         <div className="label">Exposure Ledger</div>
-                        <div className="utility-text">Service traces discovered through inbox and account metadata analysis.</div>
+                        <div className="utility-text">Service traces derived from sender metadata and uploaded header files.</div>
                     </div>
 
                     {services.length > 0 ? (
@@ -167,6 +268,7 @@ function Dashboard() {
                                     <tr>
                                         <th>Service</th>
                                         <th>Type</th>
+                                        <th>Signals</th>
                                         <th>Last Seen</th>
                                         <th>Status</th>
                                         <th>Security</th>
@@ -181,6 +283,7 @@ function Dashboard() {
                                                 <div className="utility-text">{service.domain}</div>
                                             </td>
                                             <td>{service.accountType}</td>
+                                            <td>{service.messageCount}</td>
                                             <td>{service.lastSeen}</td>
                                             <td>
                                                 <span className={`dashboard-badge dashboard-badge-${service.status.toLowerCase()}`}>{service.status}</span>
@@ -223,7 +326,7 @@ function Dashboard() {
                                 className="pill-btn"
                                 onClick={() => {
                                     navigator.clipboard.writeText(draft)
-                                    alert('Draft copied to clipboard.')
+                                    setNotice('Draft copied to clipboard.')
                                 }}
                             >
                                 Copy Draft
