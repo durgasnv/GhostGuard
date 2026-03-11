@@ -7,18 +7,16 @@ import {
     type ReactNode,
 } from 'react'
 
-const STORAGE_KEY = 'ghostguard.auth.user'
-const TOKEN_KEY = 'ghostguard.auth.token'
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
+const GMAIL_METADATA_SCOPE = 'https://www.googleapis.com/auth/gmail.metadata'
 
 export interface AuthUser {
     email: string
-    name: string
-    picture?: string
 }
 
 interface AuthContextValue {
     user: AuthUser | null
+    accessToken: string | null
     isAuthenticated: boolean
     isAuthReady: boolean
     authError: string | null
@@ -33,19 +31,10 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<AuthUser | null>(() => {
-        try {
-            const stored = localStorage.getItem(STORAGE_KEY)
-            return stored ? JSON.parse(stored) : null
-        } catch (error) {
-            console.error('Failed to read stored auth state:', error)
-            localStorage.removeItem(STORAGE_KEY)
-            localStorage.removeItem(TOKEN_KEY)
-            return null
-        }
-    })
+    const [user, setUser] = useState<AuthUser | null>(null)
+    const [accessToken, setAccessToken] = useState<string | null>(null)
     const [modalOpen, setModalOpen] = useState(false)
-    const [modalMessage, setModalMessage] = useState('Sign in with Google to begin your GhostGuard scan.')
+    const [modalMessage, setModalMessage] = useState('Connect Gmail to scan sender metadata in this tab only.')
     const [authError, setAuthError] = useState<string | null>(null)
     const [isAuthReady, setIsAuthReady] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(false)
@@ -58,31 +47,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-            const userResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            const profileResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
                 headers: {
                     Authorization: `Bearer ${response.access_token}`,
                 },
             })
 
-            if (!userResponse.ok) {
-                throw new Error('Unable to retrieve Google profile.')
+            if (!profileResponse.ok) {
+                throw new Error('Unable to retrieve Gmail profile.')
             }
 
-            const profile = await userResponse.json()
+            const profile = await profileResponse.json()
             const nextUser: AuthUser = {
-                email: profile.email,
-                name: profile.name,
-                picture: profile.picture,
+                email: profile.emailAddress ?? 'Connected Gmail session',
             }
 
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser))
-            localStorage.setItem(TOKEN_KEY, response.access_token)
+            setAccessToken(response.access_token)
             setUser(nextUser)
             setAuthError(null)
             setModalOpen(false)
         } catch (error) {
             console.error(error)
-            setAuthError('Google sign-in completed, but profile retrieval failed.')
+            setAuthError('Google access completed, but the mailbox profile lookup failed.')
         }
     }
 
@@ -95,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
             client_id: GOOGLE_CLIENT_ID,
-            scope: 'openid email profile',
+            scope: GMAIL_METADATA_SCOPE,
             callback: handleAuthResponse,
         })
 
@@ -136,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         document.head.appendChild(script)
     }
 
-    const openAuthModal = (message = 'Sign in with Google to begin your GhostGuard scan.') => {
+    const openAuthModal = (message = 'Connect Gmail to scan sender metadata in this tab only.') => {
         setModalMessage(message)
         setAuthError(null)
         setModalOpen(true)
@@ -163,20 +149,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const signOut = () => {
-        const token = localStorage.getItem(TOKEN_KEY)
-
-        if (token && window.google?.accounts?.oauth2) {
-            window.google.accounts.oauth2.revoke(token, () => undefined)
+        if (accessToken && window.google?.accounts?.oauth2) {
+            window.google.accounts.oauth2.revoke(accessToken, () => undefined)
         }
 
-        localStorage.removeItem(STORAGE_KEY)
-        localStorage.removeItem(TOKEN_KEY)
+        setAccessToken(null)
         setUser(null)
     }
 
     const value = useMemo<AuthContextValue>(() => ({
         user,
-        isAuthenticated: Boolean(user),
+        accessToken,
+        isAuthenticated: Boolean(user && accessToken),
         isAuthReady,
         authError,
         modalOpen,
@@ -185,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         closeAuthModal,
         signInWithGoogle,
         signOut,
-    }), [authError, isAuthReady, modalMessage, modalOpen, user])
+    }), [accessToken, authError, isAuthReady, modalMessage, modalOpen, user])
 
     return (
         <AuthContext.Provider value={value}>
@@ -220,9 +204,17 @@ export function AuthModal() {
                 <div className="label">Authentication Required</div>
                 <h2 id="auth-modal-title" className="auth-title">Secure Access Only</h2>
                 <p className="auth-copy">{modalMessage}</p>
+                <div className="auth-permissions">
+                    <div className="label">Permissions Requested</div>
+                    <ul className="auth-permission-list">
+                        <li>Read Gmail sender metadata during the current tab session</li>
+                        <li>No email bodies, attachments, or contacts</li>
+                        <li>No local persistence after refresh or close</li>
+                    </ul>
+                </div>
                 <button className="google-auth-btn" onClick={signInWithGoogle} disabled={!isAuthReady}>
                     <span className="google-auth-mark">G</span>
-                    <span>{isAuthReady ? 'Continue with Google' : 'Loading Google Auth...'}</span>
+                    <span>{isAuthReady ? 'Connect Gmail Metadata' : 'Loading Google Auth...'}</span>
                 </button>
                 {authError && <p className="auth-error">{authError}</p>}
             </div>

@@ -93,6 +93,20 @@
     padding: 8vw 0;
 }
 
+.trust-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5vw;
+    padding-top: 4vw;
+}
+
+.trust-card {
+    border: 1px solid var(--line);
+    background: #fff;
+    padding: 22px;
+    min-height: 180px;
+}
+
 header.landing-header {
     height: var(--nav-height);
     display: grid;
@@ -473,6 +487,22 @@ header.landing-header {
     display: none;
 }
 
+.dashboard-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 24px;
+    max-width: 420px;
+}
+
+.dashboard-input {
+    border: 1px solid var(--line);
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 13px;
+    background: #fff;
+}
+
 .dashboard-summary {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -507,6 +537,13 @@ header.landing-header {
 
 .dashboard-panel {
     padding: 0;
+}
+
+.dashboard-notice {
+    padding: 18px 22px;
+    border: 1px solid var(--line);
+    margin-bottom: 24px;
+    background: #fafafa;
 }
 
 .dashboard-panel-header {
@@ -648,6 +685,26 @@ header.landing-header {
     margin-bottom: 24px;
 }
 
+.auth-permissions {
+    border: 1px solid var(--line);
+    padding: 16px;
+    margin-bottom: 20px;
+    background: #fafafa;
+}
+
+.auth-permission-list {
+    margin: 12px 0 0;
+    padding-left: 18px;
+    list-style: disc;
+}
+
+.auth-permission-list li {
+    font-size: 12px;
+    color: var(--gray-text);
+    line-height: 1.6;
+    margin-bottom: 6px;
+}
+
 .auth-error {
     color: #9f1d1d;
     margin-top: 16px;
@@ -726,6 +783,7 @@ header.landing-header {
     }
 
     .threat-grid,
+    .trust-strip,
     .dashboard-summary,
     .dashboard-hero,
     .accordion-content,

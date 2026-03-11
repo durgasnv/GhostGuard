@@ -111,58 +111,58 @@ export default function LandingPage() {
         {
             id: 0,
             num: '/01',
-            title: 'Deep Web Footprint Scan',
+            title: 'Local Header Discovery',
             visual: 'network',
             content: {
-                title: 'Mapping hidden identity fragments',
-                p1: 'GhostGuard correlates dormant signups, broker records, leaked credentials, and public traces into a single exposure graph so hidden accounts stop staying hidden.',
-                p2: 'The scan surfaces where your name, inbox, phone number, and recovery aliases still appear, then ranks those records by risk and removability.',
+                title: 'Scanning inbox metadata without reading message bodies',
+                p1: 'GhostGuard pulls only sender and date headers from Gmail or uploaded `.eml` files, then extracts service domains in the browser before any analysis request is made.',
+                p2: 'That keeps the raw mailbox content local while still surfacing which external services are most likely tied to the inbox.',
             },
         },
         {
             id: 1,
             num: '/02',
-            title: 'Automated Eradication Protocol',
+            title: 'Sanitized Risk Analysis',
             visual: 'shield',
             content: {
-                title: 'Turning discovery into removal',
-                p1: 'Each hit feeds into a structured takedown workflow built around privacy rights, service-specific deletion paths, and pre-generated request drafts.',
-                p2: 'Instead of leaving you with a threat list, GhostGuard converts those findings into concrete deletion actions that can be tracked from request to confirmation.',
+                title: 'Backend analysis without raw inbox data',
+                p1: 'The backend receives only sanitized domain summaries, then classifies activity state, flags known breach domains, and prepares the dashboard view.',
+                p2: 'This keeps the trust boundary explicit: service domains travel to the API, but personal inbox content does not.',
             },
         },
         {
             id: 2,
             num: '/03',
-            title: 'Zero-Knowledge Continuous Monitoring',
+            title: 'Draft-First Removal',
             visual: 'monitoring',
             content: {
-                title: 'Quiet monitoring, immediate alerts',
-                p1: 'Once the initial sweep is complete, GhostGuard watches for new exposure signals without turning your workspace into another data sink.',
-                p2: 'That gives users a live early-warning layer for resurfaced credentials, reactivated accounts, and fresh broker visibility.',
+                title: 'Generate requests, keep the user in control',
+                p1: 'For every flagged service, GhostGuard can generate deletion-request language that the user reviews manually before sending.',
+                p2: 'The product remains draft-only in the MVP so there is no hidden messaging workflow acting on the user’s behalf.',
             },
         },
     ]
 
     const projectItems = [
         {
-            title: 'Personal Vault',
+            title: 'Session-Only Scan',
             visual: 'vault',
-            description: 'A privacy command center for individuals. Store exposure findings, review deletion drafts, and monitor which services still retain your personal data.',
+            description: 'OAuth access is held in memory for the current tab and can be revoked immediately, keeping the MVP aligned with a zero-persistence posture.',
         },
         {
-            title: 'Enterprise Shield',
+            title: 'Sample Inbox Mode',
             visual: 'shield',
-            description: 'A team-facing layer for employee exposure reduction, stale SaaS account cleanup, and coordinated removal workflows across distributed organizations.',
+            description: 'A sample scan path exists for demos and judging so the product can be shown without requiring a live Gmail account.',
         },
         {
-            title: 'Threat Intelligence',
+            title: 'Breach Flags',
             visual: 'breach',
-            description: 'A prioritized signal feed that highlights breached domains, repeat exposure patterns, and accounts that create the highest downstream privacy risk.',
+            description: 'Known breach markers let the dashboard highlight services that deserve faster attention once dormant accounts are identified.',
         },
         {
-            title: 'Legal Proxies',
+            title: 'Draft Composer',
             visual: 'proxy',
-            description: 'A request engine that turns scan results into formal deletion language so takedown and right-to-erasure actions are faster to issue and easier to document.',
+            description: 'Deletion requests are generated as editable drafts so the user remains the final sender and reviewer.',
         },
     ]
 
@@ -178,13 +178,13 @@ export default function LandingPage() {
                     GG
                 </div>
                 <nav className="nav-center nav-text">
+                    <a href="#trust">Trust</a>
                     <a href="#architecture">Architecture</a>
                     <a href="#protocols">Protocols</a>
-                    <a href="#intelligence">Intelligence</a>
-                    <a href="#enterprise">Enterprise</a>
+                    <a href="#intelligence">Modules</a>
                 </nav>
                 <div className="nav-right nav-text">
-                    <button className="nav-link-btn" onClick={openSignIn}>{isAuthenticated ? user?.name ?? 'Dashboard' : 'Sign In'}</button>
+                    <button className="nav-link-btn" onClick={openSignIn}>{isAuthenticated ? user?.email ?? 'Dashboard' : 'Connect Gmail'}</button>
                     <button className="nav-link-btn" onClick={enterDashboard}>Audit Profile</button>
                 </div>
             </header>
@@ -195,8 +195,8 @@ export default function LandingPage() {
                         <div className="hero-text-wrap">
                             <h1 className="display-text">Trace. Purge.<br /><span className="display-italic">Vanish.</span></h1>
                             <div className="hero-statement utility-text">
-                                The definitive protocol for<br />
-                                eliminating digital shadows.
+                                Inbox metadata in.<br />
+                                exposed services out.
                             </div>
                         </div>
                     </div>
@@ -207,16 +207,35 @@ export default function LandingPage() {
 
                     <div className="hero-meta">
                         <div className="utility-text" style={{ maxWidth: '440px' }}>
-                            Since 2024, GhostGuard has been executing <span style={{ fontStyle: 'italic', color: 'var(--black)' }}>automated privacy eradication protocols</span> for users who need visibility into stale accounts, breached identities, and data-broker persistence.
+                            GhostGuard is a privacy-first MVP for identifying likely service accounts from Gmail sender metadata, highlighting breached domains, and drafting deletion requests without storing a user database.
                         </div>
                         <div style={{ width: '6px', height: '6px', backgroundColor: 'var(--black)', borderRadius: '50%' }}></div>
                         <button className="pill-btn" onClick={enterDashboard}>Initiate Scan</button>
                     </div>
                 </section>
 
+                <section className="trust-strip section-pad" id="trust">
+                    <div className="trust-card">
+                        <div className="label">What We Access</div>
+                        <p className="intro-p">Sender and date headers from Gmail metadata or uploaded `.eml` files.</p>
+                    </div>
+                    <div className="trust-card">
+                        <div className="label">What We Do Not Read</div>
+                        <p className="intro-p">Email bodies, attachments, and contact lists are outside the scan path.</p>
+                    </div>
+                    <div className="trust-card">
+                        <div className="label">What We Store</div>
+                        <p className="intro-p">Nothing by default. OAuth access and scan results live only in the active tab session.</p>
+                    </div>
+                    <div className="trust-card">
+                        <div className="label">What Leaves The Browser</div>
+                        <p className="intro-p">Only sanitized service-domain summaries needed for dashboard analysis and draft generation.</p>
+                    </div>
+                </section>
+
                 <section className="section-pad">
                     <div className="threat-header">
-                        <div className="threat-header-left title-sm">Identified<br />Vulnerabilities</div>
+                        <div className="threat-header-left title-sm">Typical<br />Findings</div>
                     </div>
 
                     <div className="threat-grid">
@@ -225,10 +244,10 @@ export default function LandingPage() {
                                 <SecurityVisual variant="archive" />
                             </div>
                             <div className="threat-meta">
-                                <span className="threat-title">Legacy Subscriptions</span>
-                                <span className="utility-text">32 Exposures</span>
+                                <span className="threat-title">Dormant Subscriptions</span>
+                                <span className="utility-text">Activity Drift</span>
                             </div>
-                            <div className="utility-text" style={{ marginTop: '4px' }}>Dormant accounts tied to active payment methods, recovery emails, and retained billing data.</div>
+                            <div className="utility-text" style={{ marginTop: '4px' }}>Services that still send account mail long after they stopped being useful.</div>
                         </div>
 
                         <div className="threat-card offset">
@@ -236,10 +255,10 @@ export default function LandingPage() {
                                 <SecurityVisual variant="breach" />
                             </div>
                             <div className="threat-meta">
-                                <span className="threat-title">Breached Credentials</span>
-                                <span className="utility-text" style={{ color: '#d00000' }}>Critical Risk</span>
+                                <span className="threat-title">Breached Domains</span>
+                                <span className="utility-text" style={{ color: '#d00000' }}>Priority Review</span>
                             </div>
-                            <div className="utility-text" style={{ marginTop: '4px' }}>Passwords and linked identities exposed in historic dumps and resurfacing broker datasets.</div>
+                            <div className="utility-text" style={{ marginTop: '4px' }}>Known incident history helps rank which dormant services should be handled first.</div>
                         </div>
 
                         <div className="threat-card" style={{ marginTop: '8vw' }}>
@@ -247,10 +266,10 @@ export default function LandingPage() {
                                 <SecurityVisual variant="network" />
                             </div>
                             <div className="threat-meta">
-                                <span className="threat-title">Orphaned Forums</span>
-                                <span className="utility-text">14 Profiles</span>
+                                <span className="threat-title">Long-Tail Accounts</span>
+                                <span className="utility-text">Low Visibility</span>
                             </div>
-                            <div className="utility-text" style={{ marginTop: '4px' }}>Abandoned communities still exposing aliases, location hints, and long-tail identity records.</div>
+                            <div className="utility-text" style={{ marginTop: '4px' }}>Older services often stay tied to an inbox long after the user stops thinking about them.</div>
                         </div>
                     </div>
                 </section>
@@ -261,10 +280,10 @@ export default function LandingPage() {
                     <div style={{ gridColumn: '2' }}></div>
                     <div className="intro-text-wrapper">
                         <p className="intro-p">
-                            Our architectural slogan, "Erase to exist," remains central to our protocol, rooting GhostGuard in an approach to digital security that values removal over accumulation.
+                            GhostGuard is built around a narrow trust boundary: parse inbox metadata locally, sanitize aggressively, and only then ask the backend for enrichment.
                         </p>
                         <p className="utility-text">
-                            The platform is designed to discover traces, classify real risk, and convert those findings into removal actions. That is why the dashboard is treated as an operational control room rather than a static report.
+                            The goal is not broad surveillance. The goal is to identify likely external services, estimate staleness, and move users toward reviewable deletion actions.
                         </p>
                     </div>
                 </section>
