@@ -1,0 +1,88 @@
+Project “GhostGuard” (Security & Social Awareness)
+
+The Problem:
+We sign up for dozens of services using “Sign in with Google/Apple.” Over time, we have no idea who has our data or which permissions are still active. People are too lazy to audit their digital footprint manually.
+
+The “Smart” Solution:
+A privacy-first dashboard that uses an LLM to scan your email headers (locally, never leaving the device) to identify every service you’ve ever linked.
+
+• The Twist: It doesn’t just show them; it generates automated “Right to be Forgotten” (GDPR/CCPA) deletion requests and identifies which of those companies have had recent data breaches.
+
+• Prototype Goal: A script that scans a sample inbox and categorizes “Ghost accounts” with a one-click “Draft Deletion Email” button.
+
+
+There are some things we need to keep in mind while developing this Project
+-> We shouldn't store or steal the email content but instead  process locally i.e, only extract headers which contain 0 personal content and do all parsing in the browser using js 
+-> oauth to be used so that password is not used at all. it should request read only minimal scope and some metadata. Users should be able to revoke access anytime from their account
+-> show the users permissions requested when clicked
+->zero persistence architecture : no data at all in the mvp. everything lies in browser memory i.e, react state only. when user closes tabl everything is gone , backend is stateless i.e receives headers , returns analysis and stores nothing
+-> sanitize before sending data to LLM. only send domain names and no names , no emails , extracts
+-> draft only , user reviws. app only creates drafts that user reads and send manually . adds disclaimer.
+
+How to Communicate Trust to Users
+On your landing page, show this clearly:
+🔒 What we access:    Email sender addresses only
+❌ What we never see: Email body, attachments, contacts
+🚫 What we store:     Nothing. Zero database.
+👁️ Open source:       All code is public on GitHub
+
+
+
+Tech Stack Recommendation (All Free)
+LayerToolLLM BrainGoogle Gemini 1.5 Flash (free API) — best for email parsing + structured outputCoding AssistantOpenCode (terminal-based, free) or Gemini in AI StudioFrontendReact + Tailwind (Vite)BackendPython FastAPI (local)Email ParsingGmail API (OAuth, free) or .eml file uploadBreach DataHaveIBeenPwned API (free tier)
+
+
+
+📅 5-Day Execution Plan
+Day 1 — Foundation + Email Scanning
+Goal: Parse emails and extract services
+
+Set up Vite + React frontend skeleton
+Build Python FastAPI backend
+Implement Gmail OAuth OR .eml file upload (safer for demo)
+Use Gemini Flash to analyze email headers:
+
+Prompt: "Extract the sender domain, service name, and account type from these email headers. Return JSON."
+
+Store results: {service, domain, lastSeen, accountType}
+
+
+Day 2 — Ghost Account Categorization
+Goal: Classify accounts by risk/activity
+
+Feed parsed services back to Gemini:
+
+Prompt: "Categorize this service as: Active / Dormant / Ghost. Ghost = signed up but no recent activity. Return confidence score."
+
+Check each domain against HaveIBeenPwned API for breach status
+Build the data model: {service, status, breached, breachDate, deletionEmail}
+
+
+Day 3 — GDPR/CCPA Deletion Email Generator
+Goal: Auto-draft "Right to be Forgotten" emails
+
+Use Gemini to generate legal deletion request emails:
+
+Prompt: "Write a formal GDPR Article 17 / CCPA deletion request email to [Company]. Include: data deletion, account removal, confirmation receipt request. Tone: professional."
+
+Add a "Draft Deletion Email" button per service
+Integrate with Gmail API's draft endpoint OR copy-to-clipboard fallback
+
+
+Day 4 — Frontend Dashboard
+Goal: Build the GhostGuard UI
+Build a dark, security-themed dashboard with:
+
+Overview cards: Total accounts / Ghost accounts / Breached services
+Service list table: Status badges (Active 🟢 / Ghost 👻 / Breached 🔴)
+One-click Draft button per row
+Filter/sort by risk level
+Animated ghost icon for dormant accounts
+
+
+Day 5 — Polish + Demo Prep
+
+Add sample inbox mode (mock data for judges, no real login needed)
+Record a 2-min demo video walkthrough
+Deploy frontend on Vercel (free), backend on Railway (free tier)
+Add README with architecture diagram

@@ -1,0 +1,682 @@
+<html lang="en" vid="0"><head vid="1">
+    <meta charset="UTF-8" vid="2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" vid="3">
+    <title vid="4">GhostGuard — Privacy Footprint</title>
+    
+    <style vid="5">
+        :root {
+            --bg: #ffffff;
+            --black: #000000;
+            --gray-text: #767676;
+            --gray-light: #f5f5f5;
+            --line: #e5e5e5;
+            
+            --font-stack: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            --nav-height: 80px;
+            --grid-gap: 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--black);
+            font-family: var(--font-stack);
+            line-height: 1.4;
+            overflow-x: hidden;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        
+        .display-text {
+            font-size: clamp(4rem, 10vw, 9rem);
+            font-weight: 300;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        .display-italic {
+            font-style: italic;
+            font-weight: 200;
+            padding-left: 0.2em; 
+        }
+
+        .title-sm {
+            font-size: 1.25rem;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        .utility-text {
+            font-size: 11px;
+            color: var(--gray-text);
+            line-height: 1.6;
+            letter-spacing: 0.02em;
+        }
+
+        .nav-text {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-text);
+        }
+
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 4vw;
+        }
+
+        .section-pad {
+            padding: 8vw 0;
+        }
+
+        
+        header {
+            height: var(--nav-height);
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            align-items: center;
+            padding: 0 4vw;
+            position: sticky;
+            top: 0;
+            background: rgba(255,255,255,0.95);
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: -0.05em;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .logo svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-center {
+            display: flex;
+            justify-content: center;
+            gap: 2vw;
+        }
+
+        .nav-right {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1.5vw;
+            align-items: center;
+        }
+
+        
+        .hero {
+            padding-top: 4vw;
+            padding-bottom: 2vw;
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 4vw;
+        }
+
+        .hero-text-wrap {
+            position: relative;
+        }
+
+        .hero-statement {
+            position: absolute;
+            right: 0;
+            bottom: 1.5vw;
+            width: 200px;
+            border-bottom: 1px solid var(--black);
+            padding-bottom: 8px;
+        }
+
+        .hero-image-container {
+            width: 100%;
+            height: 60vh;
+            background: var(--gray-light);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero-image-container img {
+            width: 100%;
+            height: 100%;
+            object-position: center 30%;
+            filter: grayscale(20%) contrast(110%);
+        }
+
+        .hero-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .pill-btn {
+            background: var(--black);
+            color: var(--bg);
+            padding: 10px 32px;
+            border-radius: 40px;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: 1px solid var(--black);
+            transition: all 0.2s ease;
+        }
+
+        .pill-btn:hover {
+            background: var(--bg);
+            color: var(--black);
+        }
+
+        .pill-btn-outline {
+            background: transparent;
+            color: var(--black);
+            border: 1px solid var(--black);
+        }
+        
+        .pill-btn-outline:hover {
+            background: var(--black);
+            color: var(--bg);
+        }
+
+        
+        .threat-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 4vw;
+        }
+
+        .threat-header-left {
+            width: 20%;
+        }
+
+        .threat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2vw;
+            align-items: start;
+        }
+
+        .threat-card {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .threat-card.offset {
+            margin-top: 4vw; 
+            transform: scale(1.1);
+            transform-origin: top center;
+            z-index: 2;
+        }
+
+        .threat-img-box {
+            background: var(--gray-light);
+            aspect-ratio: 1 / 1;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .threat-img-box img {
+            width: 70%;
+            height: 70%;
+            object-fit: contain;
+            mix-blend-mode: multiply; 
+            filter: contrast(120%) grayscale(100%);
+        }
+
+        .threat-card.offset .threat-img-box img {
+            width: 90%;
+            height: 90%;
+        }
+
+        .threat-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-top: 1px solid var(--line);
+            padding-top: 0.5rem;
+        }
+
+        .threat-title {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        
+        .intro-block {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            padding: 6vw 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .intro-title {
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .intro-text-wrapper {
+            max-width: 500px;
+        }
+
+        .intro-p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--black);
+            margin-bottom: 1.5rem;
+        }
+
+        
+        .accordion-list {
+            border-top: 1px solid var(--line);
+        }
+
+        .accordion-item {
+            border-bottom: 1px solid var(--line);
+        }
+
+        .accordion-header {
+            display: grid;
+            grid-template-columns: 50px 1fr 24px;
+            align-items: center;
+            padding: 1.5vw 0;
+            cursor: pointer;
+        }
+
+        .acc-num {
+            font-size: 11px;
+            color: var(--gray-text);
+        }
+
+        .acc-title {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .acc-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid var(--black);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 300;
+        }
+
+        
+        .accordion-item.expanded .acc-icon {
+            content: '-';
+        }
+
+        .accordion-content {
+            display: grid;
+            grid-template-columns: 50px 1fr 1fr;
+            padding-bottom: 3vw;
+        }
+
+        .acc-content-img {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: var(--gray-light);
+            grid-column: 2;
+            max-width: 240px;
+        }
+
+        .acc-content-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%);
+        }
+
+        .acc-content-text {
+            grid-column: 3;
+            max-width: 320px;
+            justify-self: start;
+        }
+
+        .acc-content-text p {
+            font-size: 12px;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .acc-action {
+            display: flex;
+            justify-content: center;
+            padding: 4vw 0;
+        }
+
+        
+        .hover-list-section {
+            padding: 4vw 0 8vw;
+            position: relative;
+            min-height: 400px;
+        }
+
+        .hover-list {
+            width: 100%;
+        }
+
+        .hover-item {
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            padding: 1.5vw 0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .hover-item:first-child {
+            border-top: 1px solid var(--line);
+        }
+
+        .hover-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--black);
+            border-radius: 50%;
+            margin-right: 2vw;
+        }
+
+        .hover-text {
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            transition: font-style 0.2s ease;
+            flex-grow: 1;
+        }
+
+        .hover-item:hover .hover-text {
+            font-style: italic;
+        }
+
+        .hover-arrow {
+            width: 16px;
+            height: 16px;
+        }
+
+        
+        .hover-img-preview {
+            position: absolute;
+            right: 10vw;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 300px;
+            height: 400px;
+            background: var(--gray-light);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .hover-img-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hover-item:hover ~ .hover-img-preview {
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body vid="6">
+
+    <header vid="7">
+        <div class="logo" vid="8">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" vid="9">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linejoin="round" vid="10"></path>
+                <path d="M12 8v4" stroke-linecap="square" vid="11"></path>
+                <circle cx="12" cy="16" r="1" fill="currentColor" stroke="none" vid="12"></circle>
+            </svg>
+            GG
+        </div>
+        <nav class="nav-center nav-text" vid="13">
+            <a href="#" vid="14">Architecture</a>
+            <a href="#" vid="15">Protocols</a>
+            <a href="#" vid="16">Intelligence</a>
+            <a href="#" vid="17">Enterprise</a>
+        </nav>
+        <div class="nav-right nav-text" vid="18">
+            <a href="#" vid="19">Sign In</a>
+            <a href="#" vid="20">Audit Profile</a>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" vid="21">
+                <circle cx="9" cy="21" r="1" vid="22"></circle>
+                <circle cx="20" cy="21" r="1" vid="23"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" vid="24"></path>
+            </svg>
+        </div>
+    </header>
+
+    <main class="container" vid="25">
+        
+        <section class="hero" vid="26">
+            <div class="hero-top" vid="27">
+                <div class="hero-text-wrap" vid="28">
+                    <h1 class="display-text" vid="29">Trace. Purge.<br vid="30"><span class="display-italic" vid="31">Vanish.</span></h1>
+                    <div class="hero-statement utility-text" vid="32">
+                        The definitive protocol for<br vid="33">
+                        eliminating digital shadows.
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-image-container" vid="34">
+                
+                <img src="https://images.pexels.com/photos/176342/pexels-photo-176342.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1600" alt="Abstract vast space" vid="35">
+            </div>
+
+            <div class="hero-meta" vid="36">
+                <div class="utility-text" style="max-width: 400px;" vid="37">
+                    Since 2024, GhostGuard has been executing <span style="font-style: italic; color: var(--black)" vid="38">automated privacy eradication protocols</span> that meet the highest standards of cryptographic verification and zero-knowledge architecture.
+                </div>
+                <div style="width: 6px; height: 6px; background: var(--black); border-radius: 50%;" vid="39"></div>
+                <button class="pill-btn" vid="40">Initiate Scan</button>
+            </div>
+        </section>
+
+        <section class="section-pad" vid="41">
+            <div class="threat-header" vid="42">
+                <div class="threat-header-left title-sm" vid="43">Identified<br vid="44">Vulnerabilities</div>
+            </div>
+
+            <div class="threat-grid" vid="45">
+                
+                <div class="threat-card" vid="46">
+                    <div class="threat-img-box" vid="47">
+                        
+                        <img src="https://images.pexels.com/photos/325229/pexels-photo-325229.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600" alt="Data node" vid="48">
+                    </div>
+                    <div class="threat-meta" vid="49">
+                        <span class="threat-title" vid="50">Legacy Subscriptions</span>
+                        <span class="utility-text" vid="51">32 Exposures</span>
+                    </div>
+                    <div class="utility-text" style="margin-top: 4px;" vid="52">Dormant accounts tied to active payment methods.</div>
+                </div>
+
+                
+                <div class="threat-card offset" vid="53">
+                    <div class="threat-img-box" vid="54">
+                        
+                        <img src="https://images.pexels.com/photos/2773498/pexels-photo-2773498.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="Shadow identity" vid="55">
+                    </div>
+                    <div class="threat-meta" vid="56">
+                        <span class="threat-title" vid="57">Breached Credentials</span>
+                        <span class="utility-text" style="color: #d00000;" vid="58">Critical Risk</span>
+                    </div>
+                    <div class="utility-text" style="margin-top: 4px;" vid="59">Passwords exposed in dark web dumps since 2018.</div>
+                </div>
+
+                
+                <div class="threat-card" style="margin-top: 8vw;" vid="60">
+                    <div class="threat-img-box" vid="61">
+                        
+                        <img src="https://images.pexels.com/photos/262367/pexels-photo-262367.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600" alt="Empty structure" vid="62">
+                    </div>
+                    <div class="threat-meta" vid="63">
+                        <span class="threat-title" vid="64">Orphaned Forums</span>
+                        <span class="utility-text" vid="65">14 Profiles</span>
+                    </div>
+                    <div class="utility-text" style="margin-top: 4px;" vid="66">Abandoned communities holding PII and geolocation data.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="intro-block" vid="67">
+            <div class="label" vid="68">The core philosophy</div>
+            <h2 class="intro-title" vid="69">Absolute Control</h2>
+            <div style="grid-column: 2;" vid="70"></div> 
+            <div class="intro-text-wrapper" vid="71">
+                <p class="intro-p" vid="72">
+                    Our architectural slogan, "Erase to exist," remains central to our protocol — rooting us in an approach to digital security that embraces subtraction over addition.
+                </p>
+                <p class="utility-text" vid="73">
+                    This philosophy has led to the development of our proprietary eradication engine. We don't just alert you to exposed data; we sever the connection at the database level. GhostGuard acts as a legal proxy, enforcing "Right to be Forgotten" mandates automatically.
+                </p>
+            </div>
+        </section>
+
+        <section vid="74">
+            <div class="accordion-list" vid="75">
+                
+                <div class="accordion-item" vid="76">
+                    <div class="accordion-header" vid="77">
+                        <span class="acc-num" vid="78">/01</span>
+                        <span class="acc-title" vid="79">Deep Web Footprint Scan</span>
+                        <span class="acc-icon" vid="80">+</span>
+                    </div>
+                </div>
+
+                <div class="accordion-item expanded" vid="81">
+                    <div class="accordion-header" vid="82">
+                        <span class="acc-num" vid="83">/02</span>
+                        <span class="acc-title" vid="84">Automated Eradication Protocol</span>
+                        <span class="acc-icon" style="line-height: 16px;" vid="85">–</span>
+                    </div>
+                    <div class="accordion-content" vid="86">
+                        <div class="acc-content-img" vid="87">
+                            <img src="https://images.pexels.com/photos/5245865/pexels-photo-5245865.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600" alt="Shredded data" vid="88">
+                        </div>
+                        <div class="acc-content-text" vid="89">
+                            <h3 class="title-sm" style="margin-bottom: 8px;" vid="90">Severing ties permanently</h3>
+                            <p vid="91">
+                                When developing the eradication engine, the engineers focused not only on detection speed, but on legal enforceability. They integrated directly with compliance endpoints for GDPR and CCPA.
+                            </p>
+                            <p vid="92">
+                                Now one of the most powerful features of the dashboard is the one-click purge, which legally compells entities to destroy your records, turning an arduous bureaucratic process into a seamless interaction.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item" vid="93">
+                    <div class="accordion-header" vid="94">
+                        <span class="acc-num" vid="95">/03</span>
+                        <span class="acc-title" vid="96">Zero-Knowledge Continuous Monitoring</span>
+                        <span class="acc-icon" vid="97">+</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="acc-action" vid="98">
+                <button class="pill-btn pill-btn-outline" vid="99">View Architecture</button>
+            </div>
+        </section>
+
+        <section class="hover-list-section" vid="100">
+            <div class="hover-list" vid="101">
+                
+                <div class="hover-item" vid="102">
+                    <div class="hover-dot" vid="103"></div>
+                    <div class="hover-text" vid="104">Personal Vault</div>
+                    <svg class="hover-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" vid="105">
+                        <path d="M5 12h14M12 5l7 7-7 7" vid="106"></path>
+                    </svg>
+                </div>
+                
+                <div class="hover-item" vid="107">
+                    <div class="hover-dot" vid="108"></div>
+                    <div class="hover-text" vid="109">Enterprise Shield</div>
+                    <svg class="hover-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" vid="110">
+                        <path d="M5 12h14M12 5l7 7-7 7" vid="111"></path>
+                    </svg>
+                </div>
+
+                <div class="hover-item" vid="112">
+                    <div class="hover-dot" vid="113"></div>
+                    <div class="hover-text" vid="114">Threat Intelligence</div>
+                    <svg class="hover-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" vid="115">
+                        <path d="M5 12h14M12 5l7 7-7 7" vid="116"></path>
+                    </svg>
+                </div>
+
+                <div class="hover-item" vid="117">
+                    <div class="hover-dot" vid="118"></div>
+                    <div class="hover-text" vid="119">Legal Proxies</div>
+                    <svg class="hover-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" vid="120">
+                        <path d="M5 12h14M12 5l7 7-7 7" vid="121"></path>
+                    </svg>
+                </div>
+
+            </div>
+            
+            
+            <div class="hover-img-preview" vid="122">
+                <img src="https://images.pexels.com/photos/1036396/pexels-photo-1036396.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=600" alt="Security context" vid="123">
+            </div>
+        </section>
+
+    </main>
+
+
+</body></html>
