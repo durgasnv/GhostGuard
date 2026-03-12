@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap');
+
+.intro-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1);
+}
+
+.intro-container.exit-up {
+    transform: translateY(-100%);
+}
+
+.bg-text-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Outfit', sans-serif;
+    font-size: 15vw;
+    font-weight: 900;
+    color: rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    z-index: 1;
+    pointer-events: none;
+    letter-spacing: -0.05em;
+    user-select: none;
+}
+
+.intro-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+    max-width: 600px;
+    width: 90%;
+    position: relative;
+    z-index: 2;
+}
+
+.ghost-image-wrapper {
+    width: 300px;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.ghost-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    /* Basic animation for attention */
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+.hunt-button {
+    /* Using Outfit as a modern alternative to Cyrene if not available */
+    font-family: 'Outfit', -apple-system, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 1rem 3rem;
+    background: transparent;
+    color: #000000;
+    border: 2px solid #000000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.hunt-button:hover {
+    background-color: #000000;
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+.hunt-button:active {
+    transform: scale(0.95);
+}

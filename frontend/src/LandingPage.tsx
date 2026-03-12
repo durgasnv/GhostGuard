@@ -1,78 +1,8 @@
-import { useEffect, useState, type ReactNode } from 'react'
+
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from './auth'
 import './landing.css'
-
-function SecurityVisual({ variant }: { variant: string }) {
-    const nodes = (
-        <>
-            <circle cx="48" cy="48" r="10" />
-            <circle cx="148" cy="60" r="10" />
-            <circle cx="112" cy="142" r="10" />
-            <path d="M58 53 138 62M54 57l50 78M142 68l-24 66" />
-        </>
-    )
-
-    const visuals: Record<string, ReactNode> = {
-        signal: (
-            <svg viewBox="0 0 220 220" className="security-art-svg" fill="none" stroke="currentColor" strokeWidth="3">
-                <circle cx="110" cy="110" r="72" />
-                <circle cx="110" cy="110" r="44" />
-                <path d="M110 22v24M198 110h-24M110 198v-24M22 110h24" />
-                <path d="m164 56-17 17M56 56l17 17M164 164l-17-17M56 164l17-17" />
-            </svg>
-        ),
-        network: (
-            <svg viewBox="0 0 220 220" className="security-art-svg" fill="none" stroke="currentColor" strokeWidth="3">
-                {nodes}
-            </svg>
-        ),
-        shield: (
-            <svg viewBox="0 0 220 220" className="security-art-svg" fill="none" stroke="currentColor" strokeWidth="3">
-                <path d="M110 24 170 48v48c0 40-24 72-60 96-36-24-60-56-60-96V48l60-24Z" />
-                <path d="m82 110 20 20 36-44" />
-            </svg>
-        ),
-        vault: (
-            <svg viewBox="0 0 220 220" className="security-art-svg" fill="none" stroke="currentColor" strokeWidth="3">
-                <rect x="44" y="44" width="132" height="132" rx="16" />
-                <circle cx="110" cy="110" r="32" />
-                <path d="M110 78v64M78 110h64" />
-            </svg>
-        ),
-        breach: (
-            <svg viewBox="0 0 220 220" className="security-art-svg" fill="none" stroke="currentColor" strokeWidth="3">
-                <path d="M110 22v52" />
-                <path d="m128 74-36 50h28l-18 74 62-86h-30l18-38Z" />
-            </svg>
-        ),
-        archive: (
-            <svg viewBox="0 0 220 220" className="security-art-svg" fill="none" stroke="currentColor" strokeWidth="3">
-                <rect x="36" y="60" width="148" height="108" rx="12" />
-                <path d="M60 60V42h100v18M84 104h52M84 128h52" />
-                <circle cx="70" cy="116" r="10" />
-            </svg>
-        ),
-        proxy: (
-            <svg viewBox="0 0 220 220" className="security-art-svg" fill="none" stroke="currentColor" strokeWidth="3">
-                <rect x="56" y="44" width="108" height="132" rx="12" />
-                <path d="M82 78h56M82 106h56M82 134h34" />
-                <circle cx="146" cy="136" r="22" />
-                <path d="m136 136 8 8 16-18" />
-            </svg>
-        ),
-        monitoring: (
-            <svg viewBox="0 0 220 220" className="security-art-svg" fill="none" stroke="currentColor" strokeWidth="3">
-                <path d="M30 152c24-48 62-72 116-72 18 0 34 2 44 6" />
-                <circle cx="154" cy="78" r="30" />
-                <circle cx="154" cy="78" r="10" />
-                <path d="m42 150 36-30 26 16 26-32 20 12" />
-            </svg>
-        ),
-    }
-
-    return <div className={`security-art security-art-${variant}`}>{visuals[variant]}</div>
-}
 
 export default function LandingPage() {
     const navigate = useNavigate()
@@ -112,7 +42,7 @@ export default function LandingPage() {
             id: 0,
             num: '/01',
             title: 'Local Header Discovery',
-            visual: 'network',
+            image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=600',
             content: {
                 title: 'Scanning inbox metadata without reading message bodies',
                 p1: 'GhostGuard pulls only sender and date headers from Gmail or uploaded `.eml` files, then extracts service domains in the browser before any analysis request is made.',
@@ -123,7 +53,7 @@ export default function LandingPage() {
             id: 1,
             num: '/02',
             title: 'Sanitized Risk Analysis',
-            visual: 'shield',
+            image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=600',
             content: {
                 title: 'Backend analysis without raw inbox data',
                 p1: 'The backend receives only sanitized domain summaries, then classifies activity state, flags known breach domains, and prepares the dashboard view.',
@@ -134,7 +64,7 @@ export default function LandingPage() {
             id: 2,
             num: '/03',
             title: 'Draft-First Removal',
-            visual: 'monitoring',
+            image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=600',
             content: {
                 title: 'Generate requests, keep the user in control',
                 p1: 'For every flagged service, GhostGuard can generate deletion-request language that the user reviews manually before sending.',
@@ -146,22 +76,22 @@ export default function LandingPage() {
     const projectItems = [
         {
             title: 'Session-Only Scan',
-            visual: 'vault',
+            image: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&q=80&w=600',
             description: 'OAuth access is held in memory for the current tab and can be revoked immediately, keeping the MVP aligned with a zero-persistence posture.',
         },
         {
             title: 'Sample Inbox Mode',
-            visual: 'shield',
+            image: 'https://images.unsplash.com/photo-1562813733-b31f71025d54?auto=format&fit=crop&q=80&w=600',
             description: 'A sample scan path exists for demos and judging so the product can be shown without requiring a live Gmail account.',
         },
         {
             title: 'Breach Flags',
-            visual: 'breach',
+            image: 'https://images.unsplash.com/photo-1484417894907-623942c8ee29?auto=format&fit=crop&q=80&w=600',
             description: 'Known breach markers let the dashboard highlight services that deserve faster attention once dormant accounts are identified.',
         },
         {
             title: 'Draft Composer',
-            visual: 'proxy',
+            image: 'https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?auto=format&fit=crop&q=80&w=600',
             description: 'Deletion requests are generated as editable drafts so the user remains the final sender and reviewer.',
         },
     ]
@@ -191,18 +121,24 @@ export default function LandingPage() {
 
             <main className="container">
                 <section className="hero">
-                    <div className="hero-top">
-                        <div className="hero-text-wrap">
-                            <h1 className="display-text">Trace. Purge.<br /><span className="display-italic">Vanish.</span></h1>
-                            <div className="hero-statement utility-text">
-                                Inbox metadata in.<br />
-                                exposed services out.
+                    <div className="hero-black-top">
+                        <div className="hero-top">
+                            <div className="hero-text-wrap">
+                                <h1 className="display-text">Trace. Purge.<br /><span className="display-italic">Vanish.</span></h1>
+                                <div className="hero-statement utility-text">
+                                    Inbox metadata in.<br />
+                                    exposed services out.
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="hero-image-container">
-                        <SecurityVisual variant="signal" />
+                    <div className="hero-image-container" style={{ borderTop: 'none' }}>
+                        <img
+                            src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1600"
+                            alt="Cybersecurity terminal"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
                     </div>
 
                     <div className="hero-meta">
@@ -233,7 +169,7 @@ export default function LandingPage() {
                     </div>
                 </section>
 
-                <section className="section-pad">
+                <section className="section-pad dark-section" style={{ margin: '0 -4vw', padding: '8vw 4vw' }}>
                     <div className="threat-header">
                         <div className="threat-header-left title-sm">Typical<br />Findings</div>
                     </div>
@@ -241,7 +177,7 @@ export default function LandingPage() {
                     <div className="threat-grid">
                         <div className="threat-card">
                             <div className="threat-img-box">
-                                <SecurityVisual variant="archive" />
+                                <img src="https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&q=80&w=800" alt="Dormant data" />
                             </div>
                             <div className="threat-meta">
                                 <span className="threat-title">Dormant Subscriptions</span>
@@ -252,18 +188,18 @@ export default function LandingPage() {
 
                         <div className="threat-card offset">
                             <div className="threat-img-box">
-                                <SecurityVisual variant="breach" />
+                                <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=800" alt="Breach alert" />
                             </div>
                             <div className="threat-meta">
                                 <span className="threat-title">Breached Domains</span>
-                                <span className="utility-text" style={{ color: '#d00000' }}>Priority Review</span>
+                                <span className="utility-text" style={{ color: '#ff4d4d' }}>Priority Review</span>
                             </div>
                             <div className="utility-text" style={{ marginTop: '4px' }}>Known incident history helps rank which dormant services should be handled first.</div>
                         </div>
 
                         <div className="threat-card" style={{ marginTop: '8vw' }}>
                             <div className="threat-img-box">
-                                <SecurityVisual variant="network" />
+                                <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800" alt="Server network" />
                             </div>
                             <div className="threat-meta">
                                 <span className="threat-title">Long-Tail Accounts</span>
@@ -276,8 +212,7 @@ export default function LandingPage() {
 
                 <section className="intro-block" id="architecture">
                     <div className="label">The core philosophy</div>
-                    <h2 className="intro-title">Absolute Control</h2>
-                    <div style={{ gridColumn: '2' }}></div>
+                    <h1 className="intro-title">Absolute Control</h1>
                     <div className="intro-text-wrapper">
                         <p className="intro-p">
                             GhostGuard is built around a narrow trust boundary: parse inbox metadata locally, sanitize aggressively, and only then ask the backend for enrichment.
@@ -300,7 +235,10 @@ export default function LandingPage() {
                                 {expandedAccordion === item.id && (
                                     <div className="accordion-content">
                                         <div className="acc-content-img">
-                                            <SecurityVisual variant={item.visual} />
+                                            <img
+                                                src={item.image}
+                                                alt={item.title}
+                                            />
                                         </div>
                                         <div className="acc-content-text">
                                             <h3 className="title-sm" style={{ marginBottom: '8px' }}>{item.content.title}</h3>
@@ -318,7 +256,7 @@ export default function LandingPage() {
                     </div>
                 </section>
 
-                <section className="project-list-section" id="intelligence">
+                <section className="project-list-section dark-section" id="intelligence" style={{ margin: '0 -4vw', padding: '4vw 4vw 8vw' }}>
                     <div className="project-list-intro">
                         <div className="label">Project Modules</div>
                         <h2 className="intro-title">Operational Layers</h2>
@@ -334,7 +272,10 @@ export default function LandingPage() {
                                 {expandedProjectItem === index && (
                                     <div className="accordion-content project-content">
                                         <div className="acc-content-img">
-                                            <SecurityVisual variant={item.visual} />
+                                            <img
+                                                src={item.image}
+                                                alt={item.title}
+                                            />
                                         </div>
                                         <div className="acc-content-text">
                                             <p>{item.description}</p>

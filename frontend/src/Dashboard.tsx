@@ -14,7 +14,36 @@ interface ServiceInfo {
     breached: boolean
 }
 
+type ReviewDecision = 'still-use' | 'not-using' | 'unsure'
+type FinalStatus = ServiceInfo['status']
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
+
+function formatLastSeen(value: string) {
+    const parsed = new Date(value)
+
+    if (Number.isNaN(parsed.getTime())) {
+        return value
+    }
+
+    return parsed.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    })
+}
+
+function deriveFinalStatus(service: ServiceInfo, decision?: ReviewDecision): FinalStatus {
+    if (decision === 'still-use') {
+        return 'Active'
+    }
+
+    if (decision === 'not-using') {
+        return service.status === 'Active' ? 'Dormant' : 'Ghost'
+    }
+
+    return service.status
+}
 
 function Dashboard() {
     const navigate = useNavigate()
@@ -25,10 +54,15 @@ function Dashboard() {
     const [showDraft, setShowDraft] = useState(false)
     const [requesterEmail, setRequesterEmail] = useState('')
     const [notice, setNotice] = useState<string | null>(null)
+    const [reviewDecisions, setReviewDecisions] = useState<Record<string, ReviewDecision>>({})
 
     useEffect(() => {
         setRequesterEmail(user?.email ?? '')
     }, [user?.email])
+
+    const resetScanState = () => {
+        setReviewDecisions({})
+    }
 
     const analyzeCandidates = async (domains: ReturnType<typeof demoCandidates>) => {
         const response = await fetch(`${API_BASE_URL}/analyze`, {
@@ -43,6 +77,7 @@ function Dashboard() {
 
         const data = await response.json()
         setServices(data)
+        resetScanState()
         setNotice(`Mapped ${data.length} service domains without sending raw inbox content to the backend.`)
     }
 
@@ -70,6 +105,7 @@ function Dashboard() {
 
             if (!messages.length) {
                 setServices([])
+                resetScanState()
                 setNotice('No recent Gmail messages were available to scan.')
                 return
             }
@@ -96,6 +132,7 @@ function Dashboard() {
 
             if (!candidates.length) {
                 setServices([])
+                resetScanState()
                 setNotice('The scan completed, but no external service domains were detected from sender metadata.')
                 return
             }
@@ -151,6 +188,7 @@ function Dashboard() {
 
             if (!candidates.length) {
                 setServices([])
+                resetScanState()
                 setNotice('No external domains could be extracted from that `.eml` header block.')
                 return
             }
@@ -164,10 +202,49 @@ function Dashboard() {
         }
     }
 
+    const setReviewDecision = (serviceKey: string, decision: ReviewDecision) => {
+        setReviewDecisions((current) => ({
+            ...current,
+            [serviceKey]: decision,
+        }))
+    }
+
+    const getServiceKey = (service: ServiceInfo) => `${service.service}-${service.domain}`
+
+    const getReviewLabel = (decision?: ReviewDecision) => {
+        if (decision === 'still-use') {
+            return 'User confirms ongoing use'
+        }
+
+        if (decision === 'not-using') {
+            return 'User says this is no longer used'
+        }
+
+        if (decision === 'unsure') {
+            return 'User is unsure, keeping inferred status'
+        }
+
+        return 'Awaiting user review'
+    }
+
+    const reviewedServices = services.map((service) => {
+        const serviceKey = getServiceKey(service)
+        const reviewDecision = reviewDecisions[serviceKey]
+        const finalStatus = deriveFinalStatus(service, reviewDecision)
+
+        return {
+            ...service,
+            serviceKey,
+            reviewDecision,
+            finalStatus,
+        }
+    })
+
     const summary = {
-        total: services.length,
-        ghost: services.filter((service) => service.status === 'Ghost').length,
-        breached: services.filter((service) => service.breached).length,
+        total: reviewedServices.length,
+        ghost: reviewedServices.filter((service) => service.finalStatus === 'Ghost').length,
+        breached: reviewedServices.filter((service) => service.breached).length,
+        reviewed: reviewedServices.filter((service) => Boolean(service.reviewDecision)).length,
     }
 
     return (
@@ -199,7 +276,7 @@ function Dashboard() {
             </header>
 
             <main className="container dashboard-main">
-                <section className="dashboard-hero">
+                <section className="dashboard-hero dark-section" style={{ margin: '0 -4vw', padding: '5vw 4vw 3vw' }}>
                     <div>
                         <div className="label">Control Surface</div>
                         <h1 className="display-text dashboard-title">Eradication<br /><span className="display-italic">Dashboard</span></h1>
@@ -234,7 +311,7 @@ function Dashboard() {
                     </div>
                 </section>
 
-                <section className="dashboard-summary">
+                <section className="dashboard-summary dark-section" style={{ margin: '0 -4vw 4vw', padding: '3vw 4vw 4vw' }}>
                     <div className="dashboard-stat">
                         <div className="utility-text">Total Services</div>
                         <div className="dashboard-stat-value">{summary.total}</div>
@@ -247,6 +324,10 @@ function Dashboard() {
                         <div className="utility-text">Data Breaches</div>
                         <div className="dashboard-stat-value dashboard-stat-risk">{summary.breached}</div>
                     </div>
+                    <div className="dashboard-stat">
+                        <div className="utility-text">User Reviewed</div>
+                        <div className="dashboard-stat-value">{summary.reviewed}</div>
+                    </div>
                 </section>
 
                 {notice && (
@@ -258,10 +339,10 @@ function Dashboard() {
                 <section className="dashboard-panel">
                     <div className="dashboard-panel-header">
                         <div className="label">Exposure Ledger</div>
-                        <div className="utility-text">Service traces derived from sender metadata and uploaded header files.</div>
+                        <div className="utility-text">Inbox signals are shown first, then refined with user confirmation to stabilize the final classification.</div>
                     </div>
 
-                    {services.length > 0 ? (
+                    {reviewedServices.length > 0 ? (
                         <div className="dashboard-table-wrap">
                             <table className="dashboard-table">
                                 <thead>
@@ -270,23 +351,51 @@ function Dashboard() {
                                         <th>Type</th>
                                         <th>Signals</th>
                                         <th>Last Seen</th>
-                                        <th>Status</th>
+                                        <th>Signal Status</th>
+                                        <th>User Review</th>
+                                        <th>Final Status</th>
                                         <th>Security</th>
                                         <th className="table-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {services.map((service) => (
-                                        <tr key={`${service.service}-${service.domain}`}>
+                                    {reviewedServices.map((service) => (
+                                        <tr key={service.serviceKey}>
                                             <td>
                                                 <div className="dashboard-service">{service.service}</div>
                                                 <div className="utility-text">{service.domain}</div>
                                             </td>
                                             <td>{service.accountType}</td>
                                             <td>{service.messageCount}</td>
-                                            <td>{service.lastSeen}</td>
+                                            <td>{formatLastSeen(service.lastSeen)}</td>
                                             <td>
                                                 <span className={`dashboard-badge dashboard-badge-${service.status.toLowerCase()}`}>{service.status}</span>
+                                            </td>
+                                            <td>
+                                                <div className="review-controls">
+                                                    <button
+                                                        className={`review-chip ${service.reviewDecision === 'still-use' ? 'review-chip-selected' : ''}`}
+                                                        onClick={() => setReviewDecision(service.serviceKey, 'still-use')}
+                                                    >
+                                                        Still Use
+                                                    </button>
+                                                    <button
+                                                        className={`review-chip ${service.reviewDecision === 'not-using' ? 'review-chip-selected' : ''}`}
+                                                        onClick={() => setReviewDecision(service.serviceKey, 'not-using')}
+                                                    >
+                                                        Not Using
+                                                    </button>
+                                                    <button
+                                                        className={`review-chip ${service.reviewDecision === 'unsure' ? 'review-chip-selected' : ''}`}
+                                                        onClick={() => setReviewDecision(service.serviceKey, 'unsure')}
+                                                    >
+                                                        Unsure
+                                                    </button>
+                                                </div>
+                                                <div className="utility-text review-caption">{getReviewLabel(service.reviewDecision)}</div>
+                                            </td>
+                                            <td>
+                                                <span className={`dashboard-badge dashboard-badge-${service.finalStatus.toLowerCase()}`}>{service.finalStatus}</span>
                                             </td>
                                             <td>
                                                 <span className={service.breached ? 'dashboard-risk dashboard-risk-critical' : 'dashboard-risk'}>

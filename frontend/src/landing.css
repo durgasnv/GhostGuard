@@ -505,7 +505,7 @@ header.landing-header {
 
 .dashboard-summary {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.5vw;
     padding: 3vw 0 4vw;
 }
@@ -618,6 +618,36 @@ header.landing-header {
 
 .dashboard-risk-critical {
     color: #9f1d1d;
+}
+
+.review-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.review-chip {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--black);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font: inherit;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+}
+
+.review-chip-selected {
+    background: var(--black);
+    color: var(--bg);
+    border-color: var(--black);
+}
+
+.review-caption {
+    margin-top: 8px;
+    max-width: 180px;
 }
 
 .table-action {
@@ -819,4 +849,59 @@ header.landing-header {
     .dashboard-table td {
         padding: 16px;
     }
+}
+
+.dark-section { 
+    background-color: #000000 !important; 
+    color: #ffffff !important; 
+}
+
+.dark-section .utility-text, 
+.dark-section .label, 
+.dark-section .intro-p,
+.dark-section p { 
+    color: rgba(255, 255, 255, 0.7) !important; 
+}
+
+.dark-section .display-text, 
+.dark-section .intro-title, 
+.dark-section .title-sm,
+.dark-section .dashboard-stat-value { 
+    color: #ffffff !important; 
+}
+
+.dark-section .dashboard-stat,
+.dark-section .dashboard-panel,
+.dark-section .dashboard-hero,
+.dark-section .dashboard-summary,
+.dark-section .dashboard-stat-risk {
+    background-color: #000000 !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+}
+
+.dark-section .pill-btn-outline { border-color: #ffffff; color: #ffffff; }
+
+.hero-black-top { background-color: #000000; color: #ffffff; margin: 0 -4vw; padding: 4vw 4vw 2vw; }
+.hero-black-top .display-text { color: #ffffff; }
+.hero-black-top .hero-statement { border-color: #ffffff; color: rgba(255, 255, 255, 0.7); }
+
+.intro-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4vw;
+    padding: 6vw 0;
+    border-top: 1px solid var(--line);
+}
+
+.intro-block .label {
+    grid-column: 1 / -1;
+}
+
+.intro-block .intro-title {
+    grid-column: 1;
+}
+
+.intro-block .intro-text-wrapper {
+    grid-column: 2;
 }
