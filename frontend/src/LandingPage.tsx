@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from './auth'
@@ -7,7 +6,6 @@ import './landing.css'
 export default function LandingPage() {
     const navigate = useNavigate()
     const { isAuthenticated, openAuthModal, user } = useAuth()
-    const [expandedAccordion, setExpandedAccordion] = useState<number | null>(1)
     const [expandedProjectItem, setExpandedProjectItem] = useState<number | null>(0)
     const [pendingDashboardEntry, setPendingDashboardEntry] = useState(false)
 
@@ -30,68 +28,31 @@ export default function LandingPage() {
 
     const openSignIn = () => {
         if (isAuthenticated) {
-            navigate('/dashboard')
             return
         }
 
         openAuthModal('Sign in with Google to access your GhostGuard control surface.')
     }
 
-    const accordionItems = [
-        {
-            id: 0,
-            num: '/01',
-            title: 'Local Header Discovery',
-            image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=600',
-            content: {
-                title: 'Scanning inbox metadata without reading message bodies',
-                p1: 'GhostGuard pulls only sender and date headers from Gmail, then extracts service domains in the browser before any analysis request is made.',
-                p2: 'That keeps the raw mailbox content local while still surfacing which external services are most likely tied to the inbox.',
-            },
-        },
-        {
-            id: 1,
-            num: '/02',
-            title: 'Sanitized Risk Analysis',
-            image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=600',
-            content: {
-                title: 'Backend analysis without raw inbox data',
-                p1: 'The backend receives only sanitized domain summaries, then classifies activity state, flags known breach domains, and prepares the dashboard view.',
-                p2: 'This keeps the trust boundary explicit: service domains travel to the API, but personal inbox content does not.',
-            },
-        },
-        {
-            id: 2,
-            num: '/03',
-            title: 'Draft-First Removal',
-            image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=600',
-            content: {
-                title: 'Generate requests, keep the user in control',
-                p1: 'For every flagged service, GhostGuard can generate deletion-request language that the user reviews manually before sending.',
-                p2: 'The product remains draft-only in the MVP so there is no hidden messaging workflow acting on the user’s behalf.',
-            },
-        },
-    ]
-
     const projectItems = [
         {
             title: 'Session-Only Scan',
-            image: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&q=80&w=600',
+            image: '/Session_only_Scan.png',
             description: 'OAuth access is held in memory for the current tab and can be revoked immediately, keeping the MVP aligned with a zero-persistence posture.',
         },
         {
             title: 'Sample Inbox Mode',
-            image: 'https://images.unsplash.com/photo-1562813733-b31f71025d54?auto=format&fit=crop&q=80&w=600',
+            image: '/Sample_Inbox_Mode.png',
             description: 'A sample scan path exists for demos and judging so the product can be shown without requiring a live Gmail account.',
         },
         {
             title: 'Breach Flags',
-            image: 'https://images.unsplash.com/photo-1484417894907-623942c8ee29?auto=format&fit=crop&q=80&w=600',
+            image: '/Breach_Flags.png',
             description: 'Known breach markers let the dashboard highlight services that deserve faster attention once dormant accounts are identified.',
         },
         {
             title: 'Draft Composer',
-            image: 'https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?auto=format&fit=crop&q=80&w=600',
+            image: '/Draft_Composer.png',
             description: 'Deletion requests are generated as editable drafts so the user remains the final sender and reviewer.',
         },
     ]
@@ -99,18 +60,17 @@ export default function LandingPage() {
     return (
         <div className="landing-body">
             <header className="landing-header">
-                <div className="logo">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" strokeLinejoin="round"></path>
-                        <path d="M12 8v4" strokeLinecap="square"></path>
-                        <circle cx="12" cy="16" r="1" fill="currentColor" stroke="none"></circle>
-                    </svg>
-                    GG
+                <div className="logo" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, letterSpacing: '0.05em' }}>
+                    <img 
+                        src="/ghost_security.png" 
+                        alt="Ghost Guard" 
+                        style={{ height: '24px', width: 'auto', objectFit: 'contain' }} 
+                    />
+                    GHOST GUARD
                 </div>
                 <nav className="nav-center nav-text">
                     <a href="#trust">Trust</a>
                     <a href="#architecture">Architecture</a>
-                    <a href="#protocols">Protocols</a>
                     <a href="#intelligence">Modules</a>
                 </nav>
                 <div className="nav-right nav-text">
@@ -199,7 +159,7 @@ export default function LandingPage() {
 
                         <div className="threat-card" style={{ marginTop: '8vw' }}>
                             <div className="threat-img-box">
-                                <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800" alt="Server network" />
+                                <img src="/Long_Tail.png" alt="Long-Tail Accounts" />
                             </div>
                             <div className="threat-meta">
                                 <span className="threat-title">Long-Tail Accounts</span>
@@ -211,8 +171,19 @@ export default function LandingPage() {
                 </section>
 
                 <section className="intro-block" id="architecture">
-                    <div className="label">The core philosophy</div>
-                    <h1 className="intro-title">Absolute Control</h1>
+                    <div style={{ gridColumn: '1 / -1', marginBottom: '0.5vw' }}>
+                        <h1 className="intro-title" style={{ textTransform: 'uppercase', marginBottom: '8px' }}>Absolute Control</h1>
+                        <div className="label">The Core Philosophy</div>
+                    </div>
+                    
+                    <div className="intro-image-wrapper" style={{ gridColumn: 1, width: '100%', maxWidth: '800px', overflow: 'hidden' }}>
+                        <img 
+                            src="/Absolute_Control.png" 
+                            alt="Absolute Control" 
+                            style={{ width: '100%', height: 'auto', objectFit: 'contain', display: 'block' }} 
+                        />
+                    </div>
+
                     <div className="intro-text-wrapper">
                         <p className="intro-p">
                             GhostGuard is built around a narrow trust boundary: parse inbox metadata locally, sanitize aggressively, and only then ask the backend for enrichment.
@@ -220,39 +191,6 @@ export default function LandingPage() {
                         <p className="utility-text">
                             The goal is not broad surveillance. The goal is to identify likely external services, estimate staleness, and move users toward reviewable deletion actions.
                         </p>
-                    </div>
-                </section>
-
-                <section id="protocols">
-                    <div className="accordion-list">
-                        {accordionItems.map((item) => (
-                            <div key={item.id} className={`accordion-item ${expandedAccordion === item.id ? 'expanded' : ''}`}>
-                                <div className="accordion-header" onClick={() => setExpandedAccordion(expandedAccordion === item.id ? null : item.id)}>
-                                    <span className="acc-num">{item.num}</span>
-                                    <span className="acc-title">{item.title}</span>
-                                    <span className="acc-icon">{expandedAccordion === item.id ? '-' : '+'}</span>
-                                </div>
-                                {expandedAccordion === item.id && (
-                                    <div className="accordion-content">
-                                        <div className="acc-content-img">
-                                            <img
-                                                src={item.image}
-                                                alt={item.title}
-                                            />
-                                        </div>
-                                        <div className="acc-content-text">
-                                            <h3 className="title-sm" style={{ marginBottom: '8px' }}>{item.content.title}</h3>
-                                            <p>{item.content.p1}</p>
-                                            <p>{item.content.p2}</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="acc-action">
-                        <button className="pill-btn pill-btn-outline" onClick={enterDashboard}>View Dashboard</button>
                     </div>
                 </section>
 
@@ -287,6 +225,20 @@ export default function LandingPage() {
                     </div>
                 </section>
             </main>
+
+            <footer style={{ padding: '2vw 4vw', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <a 
+                    href="https://github.com/durgasnv/GhostGuard" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ fontSize: '11px', color: 'var(--gray-text)', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+                >
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    Check our repo &lt;3!
+                </a>
+            </footer>
         </div>
     )
 }
