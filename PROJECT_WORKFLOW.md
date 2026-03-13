@@ -11,6 +11,8 @@ The core design principle is simple:
 - keep the backend stateless
 - let the user stay in control of final actions
 
+For usability, the current tab session is preserved across refresh using browser `sessionStorage`, but GhostGuard still avoids long-term account persistence or a user database.
+
 GhostGuard is meant to answer these questions:
 
 1. Which services are still tied to my inbox?

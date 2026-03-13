@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from './auth'
 import EmailViewerModal from './EmailViewerModal'
@@ -28,6 +28,7 @@ interface EmailViewerTarget {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
+const DASHBOARD_SESSION_KEY = 'ghostguard.dashboard.session'
 
 function formatLastSeen(value: string) {
     const parsed = new Date(value)
@@ -138,18 +139,101 @@ function getRiskScore(service: ServiceInfo & { finalStatus: FinalStatus; confide
 function Dashboard() {
     const navigate = useNavigate()
     const { accessToken, grantedScopes, hasGmailModifyScope, openAuthModal, signOut, user } = useAuth()
-    const [services, setServices] = useState<ServiceInfo[]>([])
-    const [personalContacts, setPersonalContacts] = useState<PersonalContact[]>([])
+    const [services, setServices] = useState<ServiceInfo[]>(() => {
+        const stored = sessionStorage.getItem(DASHBOARD_SESSION_KEY)
+        if (!stored) {
+            return []
+        }
+
+        try {
+            const parsed = JSON.parse(stored) as { services?: ServiceInfo[] }
+            return parsed.services ?? []
+        } catch {
+            return []
+        }
+    })
+    const [personalContacts, setPersonalContacts] = useState<PersonalContact[]>(() => {
+        const stored = sessionStorage.getItem(DASHBOARD_SESSION_KEY)
+        if (!stored) {
+            return []
+        }
+
+        try {
+            const parsed = JSON.parse(stored) as { personalContacts?: PersonalContact[] }
+            return parsed.personalContacts ?? []
+        } catch {
+            return []
+        }
+    })
     const [loading, setLoading] = useState(false)
     const [draft, setDraft] = useState<string | null>(null)
     const [showDraft, setShowDraft] = useState(false)
     const [notice, setNotice] = useState<string | null>(null)
-    const [reviewDecisions, setReviewDecisions] = useState<Record<string, ReviewDecision>>({})
-    const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('all')
-    const [sortOption, setSortOption] = useState<SortOption>('risk')
+    const [reviewDecisions, setReviewDecisions] = useState<Record<string, ReviewDecision>>(() => {
+        const stored = sessionStorage.getItem(DASHBOARD_SESSION_KEY)
+        if (!stored) {
+            return {}
+        }
+
+        try {
+            const parsed = JSON.parse(stored) as { reviewDecisions?: Record<string, ReviewDecision> }
+            return parsed.reviewDecisions ?? {}
+        } catch {
+            return {}
+        }
+    })
+    const [reviewFilter, setReviewFilter] = useState<ReviewFilter>(() => {
+        const stored = sessionStorage.getItem(DASHBOARD_SESSION_KEY)
+        if (!stored) {
+            return 'all'
+        }
+
+        try {
+            const parsed = JSON.parse(stored) as { reviewFilter?: ReviewFilter }
+            return parsed.reviewFilter ?? 'all'
+        } catch {
+            return 'all'
+        }
+    })
+    const [sortOption, setSortOption] = useState<SortOption>(() => {
+        const stored = sessionStorage.getItem(DASHBOARD_SESSION_KEY)
+        if (!stored) {
+            return 'risk'
+        }
+
+        try {
+            const parsed = JSON.parse(stored) as { sortOption?: SortOption }
+            return parsed.sortOption ?? 'risk'
+        } catch {
+            return 'risk'
+        }
+    })
     const [emailViewerTarget, setEmailViewerTarget] = useState<EmailViewerTarget | null>(null)
     const [selectedServiceKeys, setSelectedServiceKeys] = useState<string[]>([])
-    const [hiddenServiceKeys, setHiddenServiceKeys] = useState<string[]>([])
+    const [hiddenServiceKeys, setHiddenServiceKeys] = useState<string[]>(() => {
+        const stored = sessionStorage.getItem(DASHBOARD_SESSION_KEY)
+        if (!stored) {
+            return []
+        }
+
+        try {
+            const parsed = JSON.parse(stored) as { hiddenServiceKeys?: string[] }
+            return parsed.hiddenServiceKeys ?? []
+        } catch {
+            return []
+        }
+    })
+
+    useEffect(() => {
+        sessionStorage.setItem(DASHBOARD_SESSION_KEY, JSON.stringify({
+            services,
+            personalContacts,
+            reviewDecisions,
+            reviewFilter,
+            sortOption,
+            hiddenServiceKeys,
+        }))
+    }, [hiddenServiceKeys, personalContacts, reviewDecisions, reviewFilter, services, sortOption])
 
     const resetScanState = () => {
         setReviewDecisions({})

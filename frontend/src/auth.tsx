@@ -1,6 +1,7 @@
 import {
     createContext,
     useContext,
+    useEffect,
     useMemo,
     useRef,
     useState,
@@ -9,6 +10,7 @@ import {
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 const GMAIL_METADATA_SCOPE = 'https://www.googleapis.com/auth/gmail.modify'
+const AUTH_SESSION_KEY = 'ghostguard.auth.session'
 
 export interface AuthUser {
     email: string
@@ -33,15 +35,64 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<AuthUser | null>(null)
-    const [accessToken, setAccessToken] = useState<string | null>(null)
-    const [grantedScopes, setGrantedScopes] = useState<string[]>([])
+    const [user, setUser] = useState<AuthUser | null>(() => {
+        const stored = sessionStorage.getItem(AUTH_SESSION_KEY)
+        if (!stored) {
+            return null
+        }
+
+        try {
+            const parsed = JSON.parse(stored) as { user?: AuthUser }
+            return parsed.user ?? null
+        } catch {
+            return null
+        }
+    })
+    const [accessToken, setAccessToken] = useState<string | null>(() => {
+        const stored = sessionStorage.getItem(AUTH_SESSION_KEY)
+        if (!stored) {
+            return null
+        }
+
+        try {
+            const parsed = JSON.parse(stored) as { accessToken?: string }
+            return parsed.accessToken ?? null
+        } catch {
+            return null
+        }
+    })
+    const [grantedScopes, setGrantedScopes] = useState<string[]>(() => {
+        const stored = sessionStorage.getItem(AUTH_SESSION_KEY)
+        if (!stored) {
+            return []
+        }
+
+        try {
+            const parsed = JSON.parse(stored) as { grantedScopes?: string[] }
+            return parsed.grantedScopes ?? []
+        } catch {
+            return []
+        }
+    })
     const [modalOpen, setModalOpen] = useState(false)
     const [modalMessage, setModalMessage] = useState('Connect Gmail to scan service emails and optionally delete selected inbox messages in this tab only.')
     const [authError, setAuthError] = useState<string | null>(null)
     const [isAuthReady, setIsAuthReady] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(false)
     const tokenClientRef = useRef<google.accounts.oauth2.TokenClient | null>(null)
+
+    useEffect(() => {
+        if (!accessToken || !user) {
+            sessionStorage.removeItem(AUTH_SESSION_KEY)
+            return
+        }
+
+        sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({
+            accessToken,
+            grantedScopes,
+            user,
+        }))
+    }, [accessToken, grantedScopes, user])
 
     const handleAuthResponse = async (response: { access_token?: string; error?: string; scope?: string }) => {
         if (response.error || !response.access_token) {
@@ -235,7 +286,7 @@ export function AuthModal() {
                     <ul className="auth-permission-list">
                         <li>Read Gmail messages and move selected ones to Trash in this session</li>
                         <li>Read subjects, snippets, and dates for service-related inbox cleanup</li>
-                        <li>No local persistence after refresh or close</li>
+                        <li>Session-only persistence for this tab; data clears when the tab session ends</li>
                     </ul>
                 </div>
                 <p className="utility-text">Required Google scope: `https://www.googleapis.com/auth/gmail.modify`</p>

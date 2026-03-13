@@ -58,6 +58,18 @@ That means:
 
 This reduces persistence risk.
 
+## Session Persistence
+
+GhostGuard now uses browser `sessionStorage` to keep the current Gmail session and dashboard state stable across page refreshes in the same tab session.
+
+This means:
+
+- refresh does not immediately wipe the current audit state
+- the session is still not designed for long-term storage
+- data clears when the tab session ends or the user signs out
+
+This is a practical compromise between demo stability and privacy.
+
 ## Why Draft-Only Is Safer
 
 GhostGuard generates deletion-request drafts but does not automatically send them.
