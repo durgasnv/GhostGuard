@@ -575,6 +575,11 @@ header.landing-header {
     border-bottom: 1px solid var(--line);
 }
 
+.dashboard-batch-bar-bottom {
+    border-top: 1px solid var(--line);
+    border-bottom: 0;
+}
+
 .dashboard-batch-actions {
     display: flex;
     gap: 16px;
