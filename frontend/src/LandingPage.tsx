@@ -37,22 +37,22 @@ export default function LandingPage() {
     const projectItems = [
         {
             title: 'Session-Only Scan',
-            image: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&q=80&w=600',
+            image: '/Session_only_Scan.png',
             description: 'OAuth access is held in memory for the current tab and can be revoked immediately, keeping the MVP aligned with a zero-persistence posture.',
         },
         {
             title: 'Sample Inbox Mode',
-            image: 'https://images.unsplash.com/photo-1562813733-b31f71025d54?auto=format&fit=crop&q=80&w=600',
+            image: '/Sample_Inbox_Mode.png',
             description: 'A sample scan path exists for demos and judging so the product can be shown without requiring a live Gmail account.',
         },
         {
             title: 'Breach Flags',
-            image: 'https://images.unsplash.com/photo-1484417894907-623942c8ee29?auto=format&fit=crop&q=80&w=600',
+            image: '/Breach_Flags.png',
             description: 'Known breach markers let the dashboard highlight services that deserve faster attention once dormant accounts are identified.',
         },
         {
             title: 'Draft Composer',
-            image: 'https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?auto=format&fit=crop&q=80&w=600',
+            image: '/Draft_Composer.png',
             description: 'Deletion requests are generated as editable drafts so the user remains the final sender and reviewer.',
         },
     ]
@@ -60,8 +60,12 @@ export default function LandingPage() {
     return (
         <div className="landing-body">
             <header className="landing-header">
-                <div className="logo">
-                    <img src="/ghost-image.jpeg" alt="Ghost Guard Logo" />
+                <div className="logo" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, letterSpacing: '0.05em' }}>
+                    <img 
+                        src="/ghost_security.png" 
+                        alt="Ghost Guard" 
+                        style={{ height: '24px', width: 'auto', objectFit: 'contain' }} 
+                    />
                     GHOST GUARD
                 </div>
                 <nav className="nav-center nav-text">
@@ -155,7 +159,7 @@ export default function LandingPage() {
 
                         <div className="threat-card" style={{ marginTop: '8vw' }}>
                             <div className="threat-img-box">
-                                <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800" alt="Server network" />
+                                <img src="/Long_Tail.png" alt="Long-Tail Accounts" />
                             </div>
                             <div className="threat-meta">
                                 <span className="threat-title">Long-Tail Accounts</span>
@@ -167,8 +171,19 @@ export default function LandingPage() {
                 </section>
 
                 <section className="intro-block" id="architecture">
-                    <div className="label">The core philosophy</div>
-                    <h1 className="intro-title">Absolute Control</h1>
+                    <div style={{ gridColumn: '1 / -1', marginBottom: '0.5vw' }}>
+                        <h1 className="intro-title" style={{ textTransform: 'uppercase', marginBottom: '8px' }}>Absolute Control</h1>
+                        <div className="label">The Core Philosophy</div>
+                    </div>
+                    
+                    <div className="intro-image-wrapper" style={{ gridColumn: 1, width: '100%', maxWidth: '800px', overflow: 'hidden' }}>
+                        <img 
+                            src="/Absolute_Control.png" 
+                            alt="Absolute Control" 
+                            style={{ width: '100%', height: 'auto', objectFit: 'contain', display: 'block' }} 
+                        />
+                    </div>
+
                     <div className="intro-text-wrapper">
                         <p className="intro-p">
                             GhostGuard is built around a narrow trust boundary: parse inbox metadata locally, sanitize aggressively, and only then ask the backend for enrichment.
@@ -211,12 +226,17 @@ export default function LandingPage() {
                 </section>
             </main>
 
-            <footer className="landing-footer">
-                <a href="https://github.com/durgasnv/GhostGuard" target="_blank" rel="noopener noreferrer" className="github-link">
-                    Check our repo &lt;3!
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+            <footer style={{ padding: '2vw 4vw', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <a 
+                    href="https://github.com/durgasnv/GhostGuard" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ fontSize: '11px', color: 'var(--gray-text)', display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+                >
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                     </svg>
+                    Check our repo &lt;3!
                 </a>
             </footer>
         </div>
