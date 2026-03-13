@@ -84,7 +84,12 @@ export default function LandingPage() {
                     <div className="hero-black-top">
                         <div className="hero-top">
                             <div className="hero-text-wrap">
-                                <h1 className="display-text">Trace. Purge.<br /><span className="display-italic">Vanish.</span></h1>
+                                <h1 className="display-text hero-title">
+                                    <span className="display-italic">Trace.</span>{' '}
+                                    <span className="display-italic">Purge.</span>
+                                    <br />
+                                    <span className="display-italic">Vanish.</span>
+                                </h1>
                                 <div className="hero-statement utility-text">
                                     Inbox metadata in.<br />
                                     exposed services out.

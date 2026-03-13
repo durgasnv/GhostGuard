@@ -20,6 +20,7 @@ type ReviewDecision = 'still-use' | 'not-using' | 'unsure'
 type FinalStatus = ServiceInfo['status']
 type ReviewFilter = 'all' | 'ghost' | 'breached' | 'unreviewed' | 'reviewed'
 type SortOption = 'risk' | 'recent' | 'oldest' | 'signals' | 'confidence'
+type DashboardDrawer = 'needs-review' | 'personal-contacts' | null
 
 interface EmailViewerTarget {
     serviceKey: string
@@ -169,6 +170,7 @@ function Dashboard() {
     const [draft, setDraft] = useState<string | null>(null)
     const [showDraft, setShowDraft] = useState(false)
     const [successMessage, setSuccessMessage] = useState<string | null>(null)
+    const [deleteConfirmKeys, setDeleteConfirmKeys] = useState<string[]>([])
     const [notice, setNotice] = useState<string | null>(null)
     const [reviewDecisions, setReviewDecisions] = useState<Record<string, ReviewDecision>>(() => {
         const stored = sessionStorage.getItem(DASHBOARD_SESSION_KEY)
@@ -211,6 +213,7 @@ function Dashboard() {
     })
     const [emailViewerTarget, setEmailViewerTarget] = useState<EmailViewerTarget | null>(null)
     const [selectedServiceKeys, setSelectedServiceKeys] = useState<string[]>([])
+    const [activeDrawer, setActiveDrawer] = useState<DashboardDrawer>(null)
     const [hiddenServiceKeys, setHiddenServiceKeys] = useState<string[]>(() => {
         const stored = sessionStorage.getItem(DASHBOARD_SESSION_KEY)
         if (!stored) {
@@ -505,6 +508,7 @@ function Dashboard() {
     })
 
     const selectedVisibleServices = visibleReviewedServices.filter((service) => selectedServiceKeys.includes(service.serviceKey))
+    const deleteConfirmServices = visibleReviewedServices.filter((service) => deleteConfirmKeys.includes(service.serviceKey))
     const needsReviewServices = visibleReviewedServices.filter((service) => (
         !service.reviewDecision || service.breached || service.confidence.score < 70
     )).slice(0, 5)
@@ -534,6 +538,10 @@ function Dashboard() {
         reviewed: visibleReviewedServices.filter((service) => Boolean(service.reviewDecision)).length,
         personal: personalContacts.length,
         hidden: hiddenServiceKeys.length,
+    }
+
+    const toggleDrawer = (drawer: Exclude<DashboardDrawer, null>) => {
+        setActiveDrawer((current) => current === drawer ? null : drawer)
     }
 
     const fetchDeletionDraft = async (serviceName: string) => {
@@ -612,8 +620,24 @@ function Dashboard() {
         }
     }
 
-    const deleteSelectedServices = async () => {
-        if (!accessToken || !hasGmailModifyScope || !selectedVisibleServices.length) {
+    const openDeleteConfirmation = () => {
+        if (!selectedVisibleServices.length) {
+            return
+        }
+
+        setDeleteConfirmKeys(selectedVisibleServices.map((service) => service.serviceKey))
+    }
+
+    const toggleDeleteConfirmSelection = (serviceKey: string) => {
+        setDeleteConfirmKeys((current) => (
+            current.includes(serviceKey)
+                ? current.filter((entry) => entry !== serviceKey)
+                : [...current, serviceKey]
+        ))
+    }
+
+    const confirmDeleteSelectedServices = async () => {
+        if (!accessToken || !hasGmailModifyScope || !deleteConfirmServices.length) {
             return
         }
 
@@ -621,11 +645,11 @@ function Dashboard() {
         setNotice(null)
 
         try {
-            const selectedServiceNames = selectedVisibleServices.map((service) => service.service)
-            const selectedServiceKeysSnapshot = selectedVisibleServices.map((service) => service.serviceKey)
+            const selectedServiceNames = deleteConfirmServices.map((service) => service.service)
+            const selectedServiceKeysSnapshot = deleteConfirmServices.map((service) => service.serviceKey)
             const matchResults: Array<{ service: typeof selectedVisibleServices[number]; messageIds: string[] }> = []
 
-            for (const service of selectedVisibleServices) {
+            for (const service of deleteConfirmServices) {
                 const { messageIds } = await searchServiceMessageIds(accessToken, service.domain, 50)
                 matchResults.push({
                     service,
@@ -652,6 +676,7 @@ function Dashboard() {
             })
             setHiddenServiceKeys((current) => current.filter((serviceKey) => !selectedServiceKeysSnapshot.includes(serviceKey)))
             setSelectedServiceKeys((current) => current.filter((serviceKey) => !selectedServiceKeysSnapshot.includes(serviceKey)))
+            setDeleteConfirmKeys([])
 
             setNotice(`Moved ${uniqueMessageIds.length} Gmail message${uniqueMessageIds.length === 1 ? '' : 's'} to Trash and removed ${selectedServiceNames.length} service${selectedServiceNames.length === 1 ? '' : 's'} from the ledger.`)
             setSuccessMessage(
@@ -670,13 +695,8 @@ function Dashboard() {
     return (
         <div className="landing-body dashboard-page">
             <header className="landing-header dashboard-header">
-                <div className="logo">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" strokeLinejoin="round"></path>
-                        <path d="M12 8v4" strokeLinecap="square"></path>
-                        <circle cx="12" cy="16" r="1" fill="currentColor" stroke="none"></circle>
-                    </svg>
-                    GG
+                <div className="dashboard-brand nav-text">
+                    GhostGuard
                 </div>
                 <div className="dashboard-user utility-text">
                     {user?.email ? `Connected Gmail: ${user.email}` : 'Session-only Gmail access'}
@@ -697,15 +717,22 @@ function Dashboard() {
 
             <main className="container dashboard-main">
                 <section className="dashboard-hero dark-section" style={{ margin: '0 -4vw', padding: '5vw 4vw 3vw' }}>
-                    <div>
+                    <div className="dashboard-hero-head">
                         <div className="label">Control Surface</div>
-                        <h1 className="display-text dashboard-title">Eradication<br /><span className="display-italic">Dashboard</span></h1>
+                        <h1 className="display-text dashboard-title dashboard-title-accent">
+                            <span className="dashboard-title-line">Eradication</span>
+                            <span className="dashboard-title-line">Dashboard</span>
+                        </h1>
+                        <div className="dashboard-hero-pulse">
+                            <span className="dashboard-pulse-dot"></span>
+                            Cleanup workflow live
+                        </div>
                     </div>
                     <div className="dashboard-hero-copy">
                         <p className="intro-p">
-                            Review sanitized service domains, scan Gmail, and generate draft deletion requests without storing mailbox data.
+                            Scan Gmail, review likely stale services, confirm what you no longer use, and clean up both inbox traces and account-removal drafts from one workflow.
                         </p>
-                        <p className="utility-text">GhostGuard reads `From` and `Date` headers in the browser, strips them down to domains, and sends only those summaries to the backend.</p>
+                        <p className="utility-text">GhostGuard fetches recent Gmail sender/date signals, separates service accounts from personal contacts, lets you verify `Active / Dormant / Ghost`, and then helps you delete related emails or draft a removal request.</p>
                         {user?.email && (
                             <p className="utility-text">
                                 Gmail cleanup scope status: {hasGmailModifyScope ? 'Granted' : 'Missing'}.
@@ -729,6 +756,20 @@ function Dashboard() {
                                 <div className="utility-text scope-list">{grantedScopes.join(', ')}</div>
                             </div>
                         )}
+                    </div>
+                    <div className="dashboard-hero-grid">
+                        <div className="dashboard-hero-card">
+                            <div className="label">Workflow</div>
+                            <div className="dashboard-hero-card-copy">Scan, review, delete, and draft account removal actions from a single control surface.</div>
+                        </div>
+                        <div className="dashboard-hero-card">
+                            <div className="label">Current Focus</div>
+                            <div className="dashboard-hero-card-copy">Use filters, confirmation, and batch cleanup to reduce the ledger into an actionable shortlist.</div>
+                        </div>
+                        <div className="dashboard-hero-card">
+                            <div className="label">Session Mode</div>
+                            <div className="dashboard-hero-card-copy">State survives refresh in this tab session, but the product still avoids long-term account storage.</div>
+                        </div>
                     </div>
                 </section>
 
@@ -765,7 +806,36 @@ function Dashboard() {
                     </section>
                 )}
 
-                {needsReviewServices.length > 0 && (
+                <section className="dashboard-tools">
+                    {needsReviewServices.length > 0 && (
+                        <button
+                            className={`dashboard-tool ${activeDrawer === 'needs-review' ? 'dashboard-tool-active' : ''}`}
+                            onClick={() => toggleDrawer('needs-review')}
+                            type="button"
+                        >
+                            <span className="dashboard-tool-icon" aria-hidden="true">!</span>
+                            <span className="dashboard-tool-copy">
+                                <span className="dashboard-tool-label">Needs Review</span>
+                                <span className="dashboard-tool-count">{needsReviewServices.length}</span>
+                            </span>
+                        </button>
+                    )}
+                    {personalContacts.length > 0 && (
+                        <button
+                            className={`dashboard-tool ${activeDrawer === 'personal-contacts' ? 'dashboard-tool-active' : ''}`}
+                            onClick={() => toggleDrawer('personal-contacts')}
+                            type="button"
+                        >
+                            <span className="dashboard-tool-icon" aria-hidden="true">@</span>
+                            <span className="dashboard-tool-copy">
+                                <span className="dashboard-tool-label">Personal Contacts</span>
+                                <span className="dashboard-tool-count">{personalContacts.length}</span>
+                            </span>
+                        </button>
+                    )}
+                </section>
+
+                {activeDrawer === 'needs-review' && needsReviewServices.length > 0 && (
                     <section className="dashboard-panel">
                         <div className="dashboard-panel-header">
                             <div className="label">Needs Review</div>
@@ -787,6 +857,37 @@ function Dashboard() {
                                     </button>
                                 </div>
                             ))}
+                        </div>
+                    </section>
+                )}
+
+                {activeDrawer === 'personal-contacts' && personalContacts.length > 0 && (
+                    <section className="dashboard-panel">
+                        <div className="dashboard-panel-header">
+                            <div className="label">Personal Contacts</div>
+                            <div className="utility-text">Public email-provider contacts are shown separately so they are not misclassified as services.</div>
+                        </div>
+                        <div className="dashboard-table-wrap">
+                            <table className="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Contact</th>
+                                        <th>Provider</th>
+                                        <th>Signals</th>
+                                        <th>Last Seen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {personalContacts.map((contact) => (
+                                        <tr key={`${contact.contact}-${contact.domain}`}>
+                                            <td>{contact.contact}</td>
+                                            <td>{contact.domain}</td>
+                                            <td>{contact.messageCount}</td>
+                                            <td>{formatLastSeen(contact.lastSeen)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </section>
                 )}
@@ -838,7 +939,7 @@ function Dashboard() {
                                     </button>
                                     <button
                                         className="table-action"
-                                        onClick={deleteSelectedServices}
+                                        onClick={openDeleteConfirmation}
                                         disabled={selectedVisibleServices.length === 0 || !accessToken || !hasGmailModifyScope || loading}
                                     >
                                         Delete Selected
@@ -955,7 +1056,7 @@ function Dashboard() {
                                 <div className="dashboard-batch-actions">
                                     <button
                                         className="table-action"
-                                        onClick={deleteSelectedServices}
+                                        onClick={openDeleteConfirmation}
                                         disabled={selectedVisibleServices.length === 0 || !accessToken || !hasGmailModifyScope || loading}
                                     >
                                         Delete Selected
@@ -977,36 +1078,6 @@ function Dashboard() {
                     )}
                 </section>
 
-                {personalContacts.length > 0 && (
-                    <section className="dashboard-panel">
-                        <div className="dashboard-panel-header">
-                            <div className="label">Personal Contacts</div>
-                            <div className="utility-text">Public email-provider contacts are shown separately so they are not misclassified as services.</div>
-                        </div>
-                        <div className="dashboard-table-wrap">
-                            <table className="dashboard-table">
-                                <thead>
-                                    <tr>
-                                        <th>Contact</th>
-                                        <th>Provider</th>
-                                        <th>Signals</th>
-                                        <th>Last Seen</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {personalContacts.map((contact) => (
-                                        <tr key={`${contact.contact}-${contact.domain}`}>
-                                            <td>{contact.contact}</td>
-                                            <td>{contact.domain}</td>
-                                            <td>{contact.messageCount}</td>
-                                            <td>{formatLastSeen(contact.lastSeen)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-                )}
             </main>
 
             {showDraft && draft && (
@@ -1030,6 +1101,53 @@ function Dashboard() {
                             </button>
                             <button className="pill-btn pill-btn-outline" onClick={() => setShowDraft(false)}>
                                 Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {deleteConfirmKeys.length > 0 && (
+                <div className="auth-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="delete-confirm-title">
+                    <div className="auth-modal draft-modal">
+                        <button className="auth-close" onClick={() => setDeleteConfirmKeys([])} aria-label="Close delete confirmation dialog">
+                            x
+                        </button>
+                        <div className="label">Delete Confirmation</div>
+                        <h2 id="delete-confirm-title" className="auth-title">
+                            {deleteConfirmServices.length === sortedServices.length && sortedServices.length > 1
+                                ? 'Confirm to delete all?'
+                                : 'Confirm deletion?'}
+                        </h2>
+                        <p className="auth-copy">
+                            Review the selected services below. You can deselect any service before confirming the delete action.
+                        </p>
+                        <div className="delete-confirm-list">
+                            {deleteConfirmServices.map((service) => (
+                                <label key={service.serviceKey} className="delete-confirm-item">
+                                    <input
+                                        type="checkbox"
+                                        checked={deleteConfirmKeys.includes(service.serviceKey)}
+                                        onChange={() => toggleDeleteConfirmSelection(service.serviceKey)}
+                                    />
+                                    <div>
+                                        <div className="dashboard-service">{service.service}</div>
+                                        <div className="utility-text">{service.domain}</div>
+                                    </div>
+                                </label>
+                            ))}
+                        </div>
+                        <p className="utility-text">Deselect a few files here if you do not want to remove all of them.</p>
+                        <div className="dashboard-actions">
+                            <button
+                                className="pill-btn"
+                                onClick={confirmDeleteSelectedServices}
+                                disabled={deleteConfirmServices.length === 0 || loading}
+                            >
+                                {loading ? 'Deleting...' : 'Confirm Delete'}
+                            </button>
+                            <button className="pill-btn pill-btn-outline" onClick={() => setDeleteConfirmKeys([])}>
+                                Cancel
                             </button>
                         </div>
                     </div>
