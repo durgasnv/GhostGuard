@@ -17,7 +17,7 @@ declare global {
                     initTokenClient: (config: {
                         client_id: string
                         scope: string
-                        callback: (response: { access_token?: string; error?: string }) => void
+                        callback: (response: { access_token?: string; error?: string; scope?: string }) => void
                     }) => google.accounts.oauth2.TokenClient
                     revoke: (token: string, callback?: () => void) => void
                 }
@@ -27,7 +27,7 @@ declare global {
 
     namespace google.accounts.oauth2 {
         interface TokenClient {
-            requestAccessToken: (options?: { prompt?: string }) => void
+            requestAccessToken: (options?: { prompt?: string; scope?: string; include_granted_scopes?: boolean }) => void
         }
     }
 }

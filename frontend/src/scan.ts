@@ -11,7 +11,19 @@ export interface DomainCandidate {
   messageCount: number
 }
 
-const EXCLUDED_DOMAINS = new Set([
+export interface PersonalContact {
+  contact: string
+  domain: string
+  lastSeen: string
+  messageCount: number
+}
+
+export interface ScanAggregationResult {
+  services: DomainCandidate[]
+  personalContacts: PersonalContact[]
+}
+
+const PERSONAL_EMAIL_DOMAINS = new Set([
   'gmail.com',
   'googlemail.com',
   'google.com',
@@ -51,6 +63,11 @@ function inferServiceName(domain: string) {
   return titleCase(label)
 }
 
+function inferContactName(email: string, domain: string) {
+  const localPart = email.split('@')[0] ?? domain
+  return titleCase(localPart.replace(/[._-]+/g, ' '))
+}
+
 function inferAccountType(domain: string) {
   if (/(cloud|drive|dropbox|storage)/i.test(domain)) return 'Storage'
   if (/(shop|store|pay|billing)/i.test(domain)) return 'Commerce'
@@ -70,41 +87,75 @@ function extractEmailAddress(value: string) {
   return directMatch?.[0]?.trim().toLowerCase() ?? null
 }
 
-function extractDomainFromFromHeader(value?: string) {
+function extractSourceFromFromHeader(value?: string) {
   if (!value) return null
 
   const email = extractEmailAddress(value)
   if (!email) return null
 
   const domain = email.split('@')[1]?.toLowerCase()
-  if (!domain || EXCLUDED_DOMAINS.has(domain)) {
+  if (!domain) {
     return null
   }
 
-  return domain
+  if (PERSONAL_EMAIL_DOMAINS.has(domain)) {
+    return {
+      type: 'Personal' as const,
+      email,
+      domain,
+    }
+  }
+
+  return {
+    type: 'Service' as const,
+    email,
+    domain,
+  }
 }
 
 function toCandidateMap(headerGroups: MessageHeader[][]) {
   const candidates = new Map<string, DomainCandidate>()
+  const personalContacts = new Map<string, PersonalContact>()
 
   for (const headers of headerGroups) {
     const fromHeader = headers.find((header) => header.name.toLowerCase() === 'from')?.value
     const dateHeader = headers.find((header) => header.name.toLowerCase() === 'date')?.value
-    const domain = extractDomainFromFromHeader(fromHeader)
+    const source = extractSourceFromFromHeader(fromHeader)
 
-    if (!domain) {
+    if (!source) {
       continue
     }
 
     const nextDate = toIsoDate(dateHeader)
-    const existing = candidates.get(domain)
+
+    if (source.type === 'Personal') {
+      const existingPersonal = personalContacts.get(source.email)
+
+      if (!existingPersonal) {
+        personalContacts.set(source.email, {
+          contact: inferContactName(source.email, source.domain),
+          domain: source.domain,
+          lastSeen: nextDate,
+          messageCount: 1,
+        })
+        continue
+      }
+
+      existingPersonal.messageCount += 1
+      if (new Date(nextDate).getTime() > new Date(existingPersonal.lastSeen).getTime()) {
+        existingPersonal.lastSeen = nextDate
+      }
+      continue
+    }
+
+    const existing = candidates.get(source.domain)
 
     if (!existing) {
-      candidates.set(domain, {
-        service: inferServiceName(domain),
-        domain,
+      candidates.set(source.domain, {
+        service: inferServiceName(source.domain),
+        domain: source.domain,
         lastSeen: nextDate,
-        accountType: inferAccountType(domain),
+        accountType: inferAccountType(source.domain),
         messageCount: 1,
       })
       continue
@@ -116,13 +167,23 @@ function toCandidateMap(headerGroups: MessageHeader[][]) {
     }
   }
 
-  return candidates
+  return {
+    services: candidates,
+    personalContacts,
+  }
 }
 
 export function aggregateHeaderGroups(headerGroups: MessageHeader[][]) {
-  return Array.from(toCandidateMap(headerGroups).values()).sort((left, right) => {
-    return new Date(right.lastSeen).getTime() - new Date(left.lastSeen).getTime()
-  })
+  const { services, personalContacts } = toCandidateMap(headerGroups)
+
+  return {
+    services: Array.from(services.values()).sort((left, right) => {
+      return new Date(right.lastSeen).getTime() - new Date(left.lastSeen).getTime()
+    }),
+    personalContacts: Array.from(personalContacts.values()).sort((left, right) => {
+      return new Date(right.lastSeen).getTime() - new Date(left.lastSeen).getTime()
+    }),
+  } satisfies ScanAggregationResult
 }
 
 export function aggregateEmlText(text: string) {

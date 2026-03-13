@@ -8,7 +8,7 @@ import {
 } from 'react'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
-const GMAIL_METADATA_SCOPE = 'https://www.googleapis.com/auth/gmail.metadata'
+const GMAIL_METADATA_SCOPE = 'https://www.googleapis.com/auth/gmail.modify'
 
 export interface AuthUser {
     email: string
@@ -17,6 +17,8 @@ export interface AuthUser {
 interface AuthContextValue {
     user: AuthUser | null
     accessToken: string | null
+    grantedScopes: string[]
+    hasGmailModifyScope: boolean
     isAuthenticated: boolean
     isAuthReady: boolean
     authError: string | null
@@ -33,16 +35,30 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null)
     const [accessToken, setAccessToken] = useState<string | null>(null)
+    const [grantedScopes, setGrantedScopes] = useState<string[]>([])
     const [modalOpen, setModalOpen] = useState(false)
-    const [modalMessage, setModalMessage] = useState('Connect Gmail to scan sender metadata in this tab only.')
+    const [modalMessage, setModalMessage] = useState('Connect Gmail to scan service emails and optionally delete selected inbox messages in this tab only.')
     const [authError, setAuthError] = useState<string | null>(null)
     const [isAuthReady, setIsAuthReady] = useState(false)
     const [isAuthLoading, setIsAuthLoading] = useState(false)
     const tokenClientRef = useRef<google.accounts.oauth2.TokenClient | null>(null)
 
-    const handleAuthResponse = async (response: { access_token?: string; error?: string }) => {
+    const handleAuthResponse = async (response: { access_token?: string; error?: string; scope?: string }) => {
         if (response.error || !response.access_token) {
             setAuthError(response.error || 'Google sign-in failed.')
+            return
+        }
+
+        const nextScopes = (response.scope ?? '')
+            .split(' ')
+            .map((scope) => scope.trim())
+            .filter(Boolean)
+
+        if (!nextScopes.includes(GMAIL_METADATA_SCOPE)) {
+            setAccessToken(null)
+            setUser(null)
+            setGrantedScopes(nextScopes)
+            setAuthError('Google sign-in succeeded, but Gmail cleanup access was not granted. Remove GhostGuard from your Google permissions and reconnect.')
             return
         }
 
@@ -63,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
 
             setAccessToken(response.access_token)
+            setGrantedScopes(nextScopes)
             setUser(nextUser)
             setAuthError(null)
             setModalOpen(false)
@@ -122,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         document.head.appendChild(script)
     }
 
-    const openAuthModal = (message = 'Connect Gmail to scan sender metadata in this tab only.') => {
+    const openAuthModal = (message = 'Connect Gmail to scan service emails and optionally delete selected inbox messages in this tab only.') => {
         setModalMessage(message)
         setAuthError(null)
         setModalOpen(true)
@@ -145,7 +162,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return
         }
 
-        tokenClientRef.current.requestAccessToken({ prompt: 'consent' })
+        tokenClientRef.current.requestAccessToken({
+            prompt: 'consent',
+            scope: GMAIL_METADATA_SCOPE,
+            include_granted_scopes: false,
+        })
     }
 
     const signOut = () => {
@@ -154,13 +175,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         setAccessToken(null)
+        setGrantedScopes([])
         setUser(null)
     }
+
+    const hasGmailModifyScope = grantedScopes.includes(GMAIL_METADATA_SCOPE)
 
     const value = useMemo<AuthContextValue>(() => ({
         user,
         accessToken,
-        isAuthenticated: Boolean(user && accessToken),
+        grantedScopes,
+        hasGmailModifyScope,
+        isAuthenticated: Boolean(user && accessToken && hasGmailModifyScope),
         isAuthReady,
         authError,
         modalOpen,
@@ -169,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         closeAuthModal,
         signInWithGoogle,
         signOut,
-    }), [accessToken, authError, isAuthReady, modalMessage, modalOpen, user])
+    }), [accessToken, authError, grantedScopes, hasGmailModifyScope, isAuthReady, modalMessage, modalOpen, user])
 
     return (
         <AuthContext.Provider value={value}>
@@ -207,14 +233,15 @@ export function AuthModal() {
                 <div className="auth-permissions">
                     <div className="label">Permissions Requested</div>
                     <ul className="auth-permission-list">
-                        <li>Read Gmail sender metadata during the current tab session</li>
-                        <li>No email bodies, attachments, or contacts</li>
+                        <li>Read Gmail messages and move selected ones to Trash in this session</li>
+                        <li>Read subjects, snippets, and dates for service-related inbox cleanup</li>
                         <li>No local persistence after refresh or close</li>
                     </ul>
                 </div>
+                <p className="utility-text">Required Google scope: `https://www.googleapis.com/auth/gmail.modify`</p>
                 <button className="google-auth-btn" onClick={signInWithGoogle} disabled={!isAuthReady}>
                     <span className="google-auth-mark">G</span>
-                    <span>{isAuthReady ? 'Connect Gmail Metadata' : 'Loading Google Auth...'}</span>
+                    <span>{isAuthReady ? 'Connect Gmail Cleanup Access' : 'Loading Google Auth...'}</span>
                 </button>
                 {authError && <p className="auth-error">{authError}</p>}
             </div>

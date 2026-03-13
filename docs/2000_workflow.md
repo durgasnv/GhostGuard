@@ -16,7 +16,6 @@ The user lands on the application and sees the trust model:
 GhostGuard currently supports:
 
 - Gmail metadata scan
-- `.eml` upload
 - sample/demo scan
 
 ### 3. Metadata is collected locally
@@ -25,10 +24,6 @@ For Gmail:
 
 - the frontend requests message metadata
 - the frontend extracts fields such as `From` and `Date`
-
-For `.eml`:
-
-- the frontend parses the uploaded header block locally
 
 ### 4. Data is sanitized in the browser
 
@@ -53,6 +48,17 @@ The backend receives only sanitized service candidates and:
 ### 6. Dashboard shows results
 
 The user sees a service ledger with the key findings and can identify which services deserve cleanup.
+
+The ledger now includes:
+
+- confidence scoring
+- a short reason for classification
+- sorting controls
+- batch selection
+- batch Gmail cleanup
+- ignore/hide actions for noisy services
+- a focused needs-review queue
+- CSV export
 
 ### 7. User generates deletion drafts
 

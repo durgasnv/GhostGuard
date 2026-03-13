@@ -11,7 +11,6 @@ The frontend is responsible for:
 
 - user interaction
 - Gmail metadata requests
-- `.eml` parsing
 - local sanitization
 - dashboard rendering
 

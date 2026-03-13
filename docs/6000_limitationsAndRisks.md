@@ -65,17 +65,7 @@ Problems:
 - not real-time
 - not sufficient for production-grade risk scoring
 
-## 6. `.eml` Upload Is Not Ideal as a Primary Flow
-
-`.eml` upload works as a fallback, but it is not an elegant long-term user flow.
-
-Problems:
-
-- manual
-- unfamiliar to many users
-- not scalable for a full inbox audit
-
-## 7. Legal Variability
+## 6. Legal Variability
 
 Deletion-request drafting is useful, but privacy compliance is not uniform across all companies or countries.
 
@@ -85,7 +75,7 @@ Problems:
 - some services may require custom workflows
 - draft language alone does not guarantee deletion
 
-## 8. User Trust Risk
+## 7. User Trust Risk
 
 Even privacy-first products can lose trust if they are not transparent.
 

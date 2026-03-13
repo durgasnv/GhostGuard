@@ -41,12 +41,13 @@ The product solves a privacy problem without becoming another privacy risk.
 The current MVP includes:
 
 - Gmail metadata scan
-- `.eml` upload fallback
 - sample/demo mode
 - exposure dashboard
 - ghost-account classification
 - breach flags
 - deletion draft generation
+- batch Gmail cleanup
+- review queue and export
 
 ## Tech Stack
 

@@ -45,7 +45,7 @@ export default function LandingPage() {
             image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=600',
             content: {
                 title: 'Scanning inbox metadata without reading message bodies',
-                p1: 'GhostGuard pulls only sender and date headers from Gmail or uploaded `.eml` files, then extracts service domains in the browser before any analysis request is made.',
+                p1: 'GhostGuard pulls only sender and date headers from Gmail, then extracts service domains in the browser before any analysis request is made.',
                 p2: 'That keeps the raw mailbox content local while still surfacing which external services are most likely tied to the inbox.',
             },
         },
@@ -153,7 +153,7 @@ export default function LandingPage() {
                 <section className="trust-strip section-pad" id="trust">
                     <div className="trust-card">
                         <div className="label">What We Access</div>
-                        <p className="intro-p">Sender and date headers from Gmail metadata or uploaded `.eml` files.</p>
+                        <p className="intro-p">Sender and date headers from Gmail metadata.</p>
                     </div>
                     <div className="trust-card">
                         <div className="label">What We Do Not Read</div>

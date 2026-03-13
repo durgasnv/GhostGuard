@@ -107,25 +107,18 @@ This is important because the product is built around trust before automation.
 GhostGuard currently supports three scan paths:
 
 - Gmail metadata scan
-- `.eml` file upload
 - sample/demo scan
 
 #### Gmail metadata scan
 
 The user connects a Gmail account using Google OAuth.
 
-GhostGuard requests Gmail metadata access for the current session. The goal is to fetch message metadata such as:
+GhostGuard requests Gmail cleanup access for the current session. The goal is to fetch message metadata such as:
 
 - `From`
 - `Date`
 
-The tool does not need full email body content for the current MVP logic.
-
-#### `.eml` upload
-
-This is a fallback/demo path for situations where Gmail OAuth is unavailable, blocked, or inconvenient.
-
-The user uploads a mail file and GhostGuard extracts the header block locally.
+For inbox cleanup features, the app can also inspect message previews and move explicitly selected emails to Trash.
 
 #### Sample/demo scan
 
@@ -140,10 +133,6 @@ For Gmail:
 - the frontend fetches recent message IDs
 - the frontend fetches metadata headers for those messages
 - the frontend extracts sender and date information
-
-For `.eml`:
-
-- the frontend parses the header section of the uploaded file
 
 At this point, GhostGuard starts converting raw mail headers into sanitized service candidates.
 
@@ -181,6 +170,8 @@ GhostGuard sends something closer to:
 
 This keeps the backend focused on service-level analysis rather than personal inbox data.
 
+GhostGuard also separates personal contacts from service domains. Public email-provider senders are categorized into a personal-contact list so they are not mixed into service risk analysis.
+
 ### 5. Backend analysis receives sanitized domain summaries
 
 The backend is designed to be stateless.
@@ -208,8 +199,22 @@ The dashboard shows:
 - number of signals
 - status classification
 - breach flag
+- confidence score
+- classification reason
+- user review state
 
 This gives the user a prioritized view of likely ghost accounts and risky services.
+
+The dashboard also supports:
+
+- sorting by risk, recency, signals, or confidence
+- hiding noisy services from the current review list
+- batch selection for multi-service cleanup
+- batch Gmail cleanup across selected services
+- a separate personal-contacts section
+- plain-language reasons for each final classification
+- CSV export of the current ledger
+- a focused needs-review queue
 
 ### 7. User generates deletion-request drafts
 
@@ -224,7 +229,9 @@ The draft can include:
 - deletion request language
 - account removal request
 - confirmation request
-- requester email
+- a placeholder account email line for the user to fill in manually
+
+Users can also generate batch draft output for multiple selected services at once.
 
 ### 8. User reviews and acts manually
 
@@ -238,6 +245,8 @@ GhostGuard helps with:
 - drafting
 
 GhostGuard does not currently automate irreversible actions against external services.
+
+For inbox cleanup, GhostGuard supports moving explicitly selected emails to Trash inside Gmail, but this action remains user-initiated and review-based.
 
 ## How the Classification Works
 
@@ -345,17 +354,7 @@ Problems:
 - some services use third-party email providers
 - one domain does not always equal one user account
 
-### 4. `.eml` upload is not ideal for real users
-
-`.eml` upload is useful for demos and fallback scenarios, but it is not the best primary workflow.
-
-Problems:
-
-- manual
-- unfamiliar to most users
-- not scalable for complete account audits
-
-### 5. Breach data is shallow in the MVP
+### 4. Breach data is shallow in the MVP
 
 The current implementation uses a small known-breach set.
 
@@ -365,7 +364,7 @@ Problems:
 - not real-time
 - insufficient for production-grade risk scoring
 
-### 6. Classification can be wrong
+### 5. Classification can be wrong
 
 Recency alone is not enough to reliably distinguish:
 
@@ -373,7 +372,7 @@ Recency alone is not enough to reliably distinguish:
 - dormant accounts
 - true ghost accounts
 
-### 7. Legal/operational ambiguity
+### 6. Legal/operational ambiguity
 
 Deletion-request generation is useful, but real compliance outcomes vary by company and jurisdiction.
 
@@ -468,7 +467,6 @@ This strengthens adoption and reduces user hesitation.
 
 - full Gmail pagination
 - clearer error reporting
-- better `.eml` parser
 - richer domain classification
 - more realistic breach intelligence
 - export/share summary report

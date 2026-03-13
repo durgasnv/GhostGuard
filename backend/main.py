@@ -170,17 +170,16 @@ async def analyze_domains(data: AnalyzeRequest):
 
 class DeletionRequest(BaseModel):
     service_name: str
-    requester_email: Optional[str] = None
 
 @app.post("/generate-deletion-draft")
 async def generate_draft(req: DeletionRequest):
-    requester_line = req.requester_email or "[Your Email]"
+    requester_line = "[Your Email]"
     mock_draft = f"To: privacy@{req.service_name.lower()}.com\nSubject: Data Deletion Request\n\nI am requesting deletion of my account and associated personal data under applicable privacy law. Please confirm receipt of this request and notify me once deletion is complete.\n\nAccount email: {requester_line}\n\nRegards,\n[Your Name]"
 
     if not client:
         return {"draft": mock_draft}
 
-    prompt = f"Write a formal GDPR Article 17 / CCPA deletion request email to {req.service_name}. Include: data deletion, account removal, confirmation receipt request, and the requester email {requester_line}. Tone: professional."
+    prompt = f"Write a formal GDPR Article 17 / CCPA deletion request email to {req.service_name}. Include: data deletion, account removal, confirmation receipt request, and a placeholder requester email line using {requester_line}. Tone: professional."
     
     try:
         response = client.models.generate_content(

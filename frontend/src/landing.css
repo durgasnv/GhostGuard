@@ -503,6 +503,10 @@ header.landing-header {
     background: #fff;
 }
 
+.scope-list {
+    overflow-wrap: anywhere;
+}
+
 .dashboard-summary {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -546,6 +550,80 @@ header.landing-header {
     background: #fafafa;
 }
 
+.needs-review-list {
+    display: grid;
+    gap: 12px;
+    padding: 24px;
+}
+
+.needs-review-card {
+    display: grid;
+    grid-template-columns: minmax(0, 180px) 1fr auto;
+    gap: 18px;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid var(--line);
+    background: #fafafa;
+}
+
+.dashboard-batch-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--line);
+}
+
+.dashboard-batch-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.dashboard-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    align-items: center;
+}
+
+.sort-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.sort-select {
+    border: 1px solid var(--line);
+    padding: 8px 12px;
+    font: inherit;
+    font-size: 11px;
+    background: #fff;
+}
+
+.filter-chip {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--black);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font: inherit;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+}
+
+.filter-chip-selected {
+    background: var(--black);
+    color: var(--bg);
+    border-color: var(--black);
+}
+
 .dashboard-panel-header {
     display: flex;
     justify-content: space-between;
@@ -587,6 +665,14 @@ header.landing-header {
 
 .table-right {
     text-align: right !important;
+}
+
+.table-actions {
+    display: inline-flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .dashboard-badge {
@@ -650,6 +736,21 @@ header.landing-header {
     max-width: 180px;
 }
 
+.confidence-score {
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.04em;
+}
+
+.confidence-caption {
+    margin-top: 4px;
+    max-width: 220px;
+}
+
+.reason-text {
+    max-width: 240px;
+}
+
 .table-action {
     background: transparent;
     border: 0;
@@ -659,6 +760,11 @@ header.landing-header {
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
+}
+
+.table-action:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 .dashboard-empty {
@@ -779,6 +885,54 @@ header.landing-header {
     width: min(100%, 720px);
 }
 
+.email-modal {
+    max-width: 860px;
+}
+
+.email-modal-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.email-list {
+    display: grid;
+    gap: 12px;
+    max-height: 380px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+}
+
+.email-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    background: #fafafa;
+    align-items: start;
+}
+
+.email-card input {
+    margin-top: 4px;
+}
+
+.email-card-body {
+    min-width: 0;
+}
+
+.email-card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: baseline;
+}
+
+.email-snippet {
+    margin: 8px 0 0;
+}
+
 .draft-content {
     white-space: pre-wrap;
     padding: 16px;
@@ -840,9 +994,18 @@ header.landing-header {
     }
 
     .hero-meta,
-    .dashboard-panel-header {
+    .dashboard-panel-header,
+    .dashboard-batch-bar {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .needs-review-card {
+        grid-template-columns: 1fr;
+    }
+
+    .sort-control {
+        margin-left: 0;
     }
 
     .dashboard-table th,
