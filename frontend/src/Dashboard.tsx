@@ -168,6 +168,7 @@ function Dashboard() {
     const [loading, setLoading] = useState(false)
     const [draft, setDraft] = useState<string | null>(null)
     const [showDraft, setShowDraft] = useState(false)
+    const [successMessage, setSuccessMessage] = useState<string | null>(null)
     const [notice, setNotice] = useState<string | null>(null)
     const [reviewDecisions, setReviewDecisions] = useState<Record<string, ReviewDecision>>(() => {
         const stored = sessionStorage.getItem(DASHBOARD_SESSION_KEY)
@@ -426,6 +427,7 @@ function Dashboard() {
         }))
 
         setNotice(`Moved ${deletedCount} Gmail message${deletedCount === 1 ? '' : 's'} to Trash for ${emailViewerTarget.serviceName}.`)
+        setSuccessMessage('these files are deleted')
     }
 
     const getReviewLabel = (decision?: ReviewDecision) => {
@@ -619,15 +621,18 @@ function Dashboard() {
         setNotice(null)
 
         try {
-            const matchResults = await Promise.all(selectedVisibleServices.map(async (service) => {
+            const selectedServiceNames = selectedVisibleServices.map((service) => service.service)
+            const selectedServiceKeysSnapshot = selectedVisibleServices.map((service) => service.serviceKey)
+            const matchResults: Array<{ service: typeof selectedVisibleServices[number]; messageIds: string[] }> = []
+
+            for (const service of selectedVisibleServices) {
                 const { messageIds } = await searchServiceMessageIds(accessToken, service.domain, 50)
-                return {
+                matchResults.push({
                     service,
                     messageIds,
-                }
-            }))
+                })
+            }
 
-            const idsByServiceKey = new Map(matchResults.map((entry) => [entry.service.serviceKey, entry.messageIds]))
             const uniqueMessageIds = Array.from(new Set(matchResults.flatMap((entry) => entry.messageIds)))
 
             if (!uniqueMessageIds.length) {
@@ -637,20 +642,23 @@ function Dashboard() {
 
             await trashMessageIds(accessToken, uniqueMessageIds)
 
-            setServices((current) => current.map((service) => {
-                const serviceKey = getServiceKey(service)
-                const matchedIds = idsByServiceKey.get(serviceKey) ?? []
-                if (!matchedIds.length) {
-                    return service
-                }
+            setServices((current) => current.filter((service) => !selectedServiceKeysSnapshot.includes(getServiceKey(service))))
+            setReviewDecisions((current) => {
+                const next = { ...current }
+                selectedServiceKeysSnapshot.forEach((serviceKey) => {
+                    delete next[serviceKey]
+                })
+                return next
+            })
+            setHiddenServiceKeys((current) => current.filter((serviceKey) => !selectedServiceKeysSnapshot.includes(serviceKey)))
+            setSelectedServiceKeys((current) => current.filter((serviceKey) => !selectedServiceKeysSnapshot.includes(serviceKey)))
 
-                return {
-                    ...service,
-                    messageCount: Math.max(service.messageCount - matchedIds.length, 0),
-                }
-            }))
-
-            setNotice(`Moved ${uniqueMessageIds.length} Gmail message${uniqueMessageIds.length === 1 ? '' : 's'} to Trash across ${matchResults.length} selected service${matchResults.length === 1 ? '' : 's'}.`)
+            setNotice(`Moved ${uniqueMessageIds.length} Gmail message${uniqueMessageIds.length === 1 ? '' : 's'} to Trash and removed ${selectedServiceNames.length} service${selectedServiceNames.length === 1 ? '' : 's'} from the ledger.`)
+            setSuccessMessage(
+                selectedServiceNames.length === 1
+                    ? `${selectedServiceNames[0]} has been deleted`
+                    : `${selectedServiceNames.join(', ')} have been deleted`,
+            )
         } catch (error) {
             console.error('Batch delete failed:', error)
             setNotice(error instanceof Error ? error.message : 'GhostGuard could not delete the selected service emails.')
@@ -942,6 +950,24 @@ function Dashboard() {
                                 </tbody>
                             </table>
                             </div>
+                            <div className="dashboard-batch-bar dashboard-batch-bar-bottom">
+                                <div className="utility-text">{selectedVisibleServices.length} service{selectedVisibleServices.length === 1 ? '' : 's'} selected</div>
+                                <div className="dashboard-batch-actions">
+                                    <button
+                                        className="table-action"
+                                        onClick={deleteSelectedServices}
+                                        disabled={selectedVisibleServices.length === 0 || !accessToken || !hasGmailModifyScope || loading}
+                                    >
+                                        Delete Selected
+                                    </button>
+                                    <button className="table-action" onClick={() => hideServices(selectedVisibleServices.map((service) => service.serviceKey))} disabled={selectedVisibleServices.length === 0}>
+                                        Hide Selected
+                                    </button>
+                                    <button className="table-action" onClick={generateBatchDraft} disabled={selectedVisibleServices.length === 0 || loading}>
+                                        Draft Selected
+                                    </button>
+                                </div>
+                            </div>
                         </>
                     ) : (
                         <div className="dashboard-empty">
@@ -1003,6 +1029,24 @@ function Dashboard() {
                                 Copy Draft
                             </button>
                             <button className="pill-btn pill-btn-outline" onClick={() => setShowDraft(false)}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {successMessage && (
+                <div className="auth-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
+                    <div className="auth-modal">
+                        <button className="auth-close" onClick={() => setSuccessMessage(null)} aria-label="Close success dialog">
+                            x
+                        </button>
+                        <div className="label">Cleanup Complete</div>
+                        <h2 id="success-modal-title" className="auth-title">Success</h2>
+                        <p className="auth-copy">{successMessage}</p>
+                        <div className="dashboard-actions">
+                            <button className="pill-btn" onClick={() => setSuccessMessage(null)}>
                                 Close
                             </button>
                         </div>

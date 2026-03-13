@@ -37,6 +37,12 @@ export interface EmailListItem {
   date: string
 }
 
+function wait(delayMs: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, delayMs)
+  })
+}
+
 export function buildSearchQueries(domain: string) {
   const rootLabel = domain.split('.')[0] ?? domain
 
@@ -124,7 +130,7 @@ export async function fetchEmailPreviews(accessToken: string, messageIds: string
 }
 
 export async function trashMessageIds(accessToken: string, messageIds: string[]) {
-  const trashResults = await Promise.allSettled(messageIds.map(async (messageId) => {
+  for (const messageId of messageIds) {
     const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}/trash`, {
       method: 'POST',
       headers: {
@@ -152,14 +158,8 @@ export async function trashMessageIds(accessToken: string, messageIds: string[])
 
       throw new Error(errorMessage)
     }
-  }))
 
-  const failedTrashResult = trashResults.find((result): result is PromiseRejectedResult => result.status === 'rejected')
-
-  if (failedTrashResult) {
-    throw failedTrashResult.reason instanceof Error
-      ? failedTrashResult.reason
-      : new Error('Unable to move one or more selected emails to Trash.')
+    await wait(60)
   }
 
   return messageIds.length
